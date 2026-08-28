@@ -1,0 +1,34 @@
+[
+  {
+    "content": "Phase 1: POC - Resend email + registration write + referral validation - PASSED",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Get design guidelines from design_agent & apply - DONE",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Backend - collections, seed data, APIs, email, admin auth - DONE",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Frontend - single-page site (Hero, About, Gallery, Committees 3D morph, Schedule, FAQ, CTA, Footer) - DONE",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Frontend - 5-step registration wizard + QR payment step - DONE",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Frontend - /handbook 'The Delegate Diaries' persona tabs - DONE",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: Admin panel - login + registrations/committees/referral management - DONE",
+    "status": "completed"
+  },
+  {
+    "content": "Phase 2: All user stories covered + End-to-End testing via testing_agent",
+    "status": "in_progress"
+  }
+]

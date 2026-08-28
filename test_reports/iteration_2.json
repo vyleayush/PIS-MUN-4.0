@@ -1,0 +1,56 @@
+{
+  "summary": "Completed comprehensive end-to-end testing of Paramount International MUN site. All backend APIs (27/27 tests passed), frontend UI components, and the CORE allotment-hiding behavior verified successfully. Admin access restriction confirmed working correctly.",
+  
+  "backend_issues": {
+    "critical_bugs": [],
+    "flaky_endpoints": []
+  },
+  
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  
+  "passed_tests": [
+    "Backend: GET /api/committees returns 5 committees (UNGA 60, AIPPM 105, WHO/UNCSW/UNHRC 60) with open_count/total_count",
+    "Backend: GET /api/committees/unga returns full committee detail with portfolios",
+    "Backend: Admin login succeeds ONLY with paramountinternationalmun.26@gmail.com / Mun091026@",
+    "Backend: Admin login rejects hacker@test.com and wrong passwords with 401",
+    "Backend: All /api/admin/* endpoints return 401 without valid Bearer token",
+    "Backend: CORE TEST - Setting India to 'allotted' reduces open_count (59→58) and India is NOT in available portfolios",
+    "Backend: CORE TEST - Reset India back to 'available' restores open_count (58→59)",
+    "Backend: POST /api/registrations with PARAMOUNT500 returns fee 1500 (₹2000 - ₹500 discount)",
+    "Backend: POST /api/registrations without referral returns fee 2000",
+    "Backend: POST /api/registrations with accepted_terms=false returns 400",
+    "Frontend: Hero renders with title 'Paramount International MUN' and countdown (48d 16h 55m 30s)",
+    "Frontend: Committee 3D flip cards work - UNGA card flips to show agenda/EB/buttons and flips back",
+    "Frontend: Committee cards show correct seat counts (59 of 60 open for UNGA)",
+    "Frontend: Admin login form works with correct credentials and navigates to dashboard",
+    "Frontend: Admin dashboard displays stats (Total 2, Pending 1, Verified 1) and registrations table",
+    "Frontend: CORE TEST - Full 5-step registration wizard completed successfully",
+    "Frontend: CORE TEST - India (allotted) correctly HIDDEN from UNGA portfolio dropdown (59 options, India not present)",
+    "Frontend: Referral code PARAMOUNT500 validation and application works (shows 'Code accepted')",
+    "Frontend: Payment page reached with QR code after completing registration wizard"
+  ],
+  
+  "test_report_links": [
+    "/app/backend/backend_test.py",
+    "/root/.emergent/automation_output/20260821_103426/console_20260821_103426.log"
+  ],
+  
+  "success_percentage": {
+    "backend": "100% (27/27 tests passed)",
+    "frontend": "100% (all UI flows and integrations working)",
+    "core_behavior": "100% (allotment-hiding verified working correctly)"
+  },
+  
+  "updated_files": [
+    "/app/backend/backend_test.py"
+  ],
+  
+  "action_item_for_main_agent": "",
+  
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_test_itself": false
+}

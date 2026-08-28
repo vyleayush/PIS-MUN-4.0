@@ -1,0 +1,16 @@
+[
+  {
+    "code": "PARAMOUNT500",
+    "discount": 500,
+    "label": "Paramount Ambassador Discount",
+    "active": true,
+    "usage_count": 1
+  },
+  {
+    "code": "DELEGATE2026",
+    "discount": 500,
+    "label": "Early Delegate Discount",
+    "active": true,
+    "usage_count": 0
+  }
+]

@@ -1,0 +1,1907 @@
+[
+  {
+    "id": "unga",
+    "slug": "unga",
+    "name": "UNGA",
+    "full_name": "United Nations General Assembly",
+    "agenda": "Addressing global security architecture, state sovereignty, and conflict de-escalation protocols in Eastern Europe and the Middle East.",
+    "tag": "Flagship committee · General Assembly",
+    "chair": "TBA",
+    "eb": "TBA",
+    "difficulty": "All experience levels",
+    "handbook_link": "",
+    "order": 1,
+    "portfolios": [
+      {
+        "name": "Islamic Republic of Afghanistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Argentina",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Australia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Austria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bangladesh",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Belgium",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Brazil",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Canada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Chile",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "China",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Croatia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Czech Republic",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Denmark",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Egypt",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Finland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "France",
+        "status": "allotted",
+        "delegate": "Test Delegate"
+      },
+      {
+        "name": "Germany",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Greece",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Grenada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hungary",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iceland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "India",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Indonesia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iran",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iraq",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Israel",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Italy",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Japan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kazakhstan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Lebanon",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Libya",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Luxembourg",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mexico",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Morocco",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Namibia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nepal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Netherlands",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "New Zealand",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nigeria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Norway",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pakistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Palestine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Poland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Qatar",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Republic Of Korea",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Russia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Rwanda",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Saudi Arabia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "South Africa",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Spain",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sudan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sweden",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Syria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Turkey",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ukraine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Arab Emirates",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Kingdom",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United States of America",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Burkina Faso",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Vietnam",
+        "status": "available",
+        "delegate": null
+      }
+    ]
+  },
+  {
+    "id": "aippm",
+    "slug": "aippm",
+    "name": "AIPPM",
+    "full_name": "All India Political Parties Meet",
+    "agenda": "Reviewing the implementation and socio-economic ramifications of the Uniform Civil Code with special focus on federal autonomy.",
+    "tag": "Indian crisis committee",
+    "chair": "TBA",
+    "eb": "TBA",
+    "difficulty": "Intermediate to Advanced",
+    "handbook_link": "",
+    "order": 2,
+    "portfolios": [
+      {
+        "name": "Arvind Kejriwal",
+        "party": "Aam Aadmi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Raghav Chadha",
+        "party": "Aam Aadmi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sanjay Singh",
+        "party": "Aam Aadmi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bhagwant Mann",
+        "party": "Aam Aadmi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Asaddudin Owaisi",
+        "party": "AIMIM",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sayed Imtiyaz Jaleel",
+        "party": "AIMIM",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "N. Rangaswamy",
+        "party": "All India N.R. Congress",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mamata Banerjee",
+        "party": "All India Trinamool Congress",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mimi Chakraborty",
+        "party": "All India Trinamool Congress",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mahua Moitra",
+        "party": "All India Trinamool Congress",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Abhishek Banerjee",
+        "party": "All India Trinamool Congress",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Chandra Prakash Choudhary",
+        "party": "All Jharkhand Students Union",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Anupriya Patel",
+        "party": "Apna Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kumari Mayawati",
+        "party": "Bahujan Samaj Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Satish Mishra",
+        "party": "Bahujan Samaj Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Afzal Ansari",
+        "party": "Bahujan Samaj Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kunwar Danish Ali",
+        "party": "Bahujan Samaj Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "K P Reddy",
+        "party": "Bharat Rashtra Samithi",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "N Biren Singh",
+        "party": "Bhartiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Narendra Modi",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Rajanath Singh",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nirmala Sitharaman",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Smriti Irani",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Maneka Gandhi",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Amit Shah",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Jyotiraditya Scindia",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nitin Gadkari",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ravi Shankar Prasad",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dr Harsh Vardhan",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Subramanyam Jaishankar",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Vasundhara Raje",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Captain Amarinder Singh",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kiren Rijiju",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Arjun Ram Meghwal",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Himanta Biswa Sharma",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pramod Sawant",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bhupendrabhai Patel",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Basavaraj Bommai",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Shivraj Singh Chouhan",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Manik Saha",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pushkar Singh Dhami",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dharmendra Pradhan",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ashvini Vaishnaw",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mukhtar Abbas Naqvi",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hardeep Singh Puri",
+        "party": "Bharatiya Janta Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bhartruhari Mahtab",
+        "party": "Biju Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Naveen Patnaik",
+        "party": "Biju Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pinaki Mishra",
+        "party": "Biju Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sitaram Yechury",
+        "party": "Communist Party of India (Marxist)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Brinda Karat",
+        "party": "Communist Party of India (Marxist)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pinarayi Vijayan",
+        "party": "Communist Party of India (Marxist)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dayanidhi Maran",
+        "party": "Dravida Munnetra Kazhagam",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "M. K. Stalin",
+        "party": "Dravida Munnetra Kazhagam",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Naba Kumar Sarania",
+        "party": "Independent",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sonia Gandhi",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Rahul Gandhi",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ambika Soni",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dr Shashi Tharoor",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sachin Pilot",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Meira Kumar",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Salman Khurshid",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dr Manmohan Singh",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Gaurav Gogoi",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bhupesh Baghel",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sukhvinder Singh Sukhu",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ashok Gehlot",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Adhir Ranjan Chowdhury",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Karti P Chidambaram",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Manish Tewari",
+        "party": "INDIAN NATIONAL CONGRESS",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dr. Farooq Abdullah",
+        "party": "Jammu and Kashmir National Conference",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kaushalendra Kumar",
+        "party": "Janata Dal (United)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nitish Kumar",
+        "party": "Janata Dal (United)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hemant Soren",
+        "party": "Jharkhand Mukti Morcha",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Chirag Paswan",
+        "party": "Lok Janshakti Party ( Ram Vilas)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Raj Thackeray",
+        "party": "Maharashtra Navnirman Sena",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Zoramthanga",
+        "party": "Mizo National Front",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Agatha Sangma",
+        "party": "National People's Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Conrad Sangma",
+        "party": "National People's Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sharad Pawar",
+        "party": "Nationalist Congress Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ajit Pawar",
+        "party": "Nationalist Congress Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Praful Patel",
+        "party": "Nationalist Congress Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Neiphiu Rio",
+        "party": "Nationalist Democratic Progressive Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Tejashwi Yadav",
+        "party": "Rashtriya Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Misa Bharti",
+        "party": "Rashtriya Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Lalu Yadav",
+        "party": "Rashtriya Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Manoj Jha",
+        "party": "Rashtriya Janata Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mehboob Ali Kaiser",
+        "party": "Rashtriya Lok Janshakti Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hanuman Beniwal",
+        "party": "Rashtriya Loktantrik Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "N K Premachandran",
+        "party": "Revolutionary Socialist Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Akhilesh Yadav",
+        "party": "Samajwadi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Shivpal Singh Yadav",
+        "party": "Samajwadi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Dimple Yadav",
+        "party": "Samajwadi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ram Gopal Yadav",
+        "party": "Samajwadi Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Harsimrat Kaur Badal",
+        "party": "Shiromani Akali Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sukhbir Singh Badal",
+        "party": "Shiromani Akali Dal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sanjay Raut",
+        "party": "Shiv Sena (UBT)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Uddhav Thackeray",
+        "party": "Shiv Sena (UBT)",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Vinayak Raut",
+        "party": "Shiv Sena",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Eknath Shinde",
+        "party": "Shiv Sena",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Prem Singh Tamang",
+        "party": "Sikkim Krantikari Morcha",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Indra Hang Subba",
+        "party": "Sikkim Krantikari Morcha",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Yogendra Yadav",
+        "party": "Swaraj India",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Derek O'Brien",
+        "party": "Trinamool Congress",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Y. S. Jagan Mohan Reddy",
+        "party": "Yuvajana Shramika Rythu Congress Party",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ghulam Nabi Azad",
+        "party": "Democratic Progressive Azad Party",
+        "status": "available",
+        "delegate": null
+      }
+    ]
+  },
+  {
+    "id": "who",
+    "slug": "who",
+    "name": "WHO",
+    "full_name": "World Health Organization",
+    "agenda": "Combating the rise of lifestyle diseases among youth and working class (obesity, hypertension, and occupational health).",
+    "tag": "Specialized agency",
+    "chair": "TBA",
+    "eb": "TBA",
+    "difficulty": "Beginner Friendly",
+    "handbook_link": "",
+    "order": 3,
+    "portfolios": [
+      {
+        "name": "Islamic Republic of Afghanistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Argentina",
+        "status": "allotted",
+        "delegate": "shubh"
+      },
+      {
+        "name": "Australia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Austria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bangladesh",
+        "status": "allotted",
+        "delegate": "Meenakshi"
+      },
+      {
+        "name": "Belgium",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Brazil",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Canada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Chile",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "China",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Croatia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Czech Republic",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Denmark",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Egypt",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Finland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "France",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Germany",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Greece",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Grenada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hungary",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iceland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "India",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Indonesia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iran",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iraq",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Israel",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Italy",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Japan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kazakhstan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Lebanon",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Libya",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Luxembourg",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mexico",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Morocco",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Namibia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nepal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Netherlands",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "New Zealand",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nigeria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Norway",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pakistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Palestine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Poland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Qatar",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Republic Of Korea",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Russia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Rwanda",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Saudi Arabia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "South Africa",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Spain",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sudan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sweden",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Syria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Turkey",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ukraine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Arab Emirates",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Kingdom",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United States of America",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Burkina Faso",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Vietnam",
+        "status": "available",
+        "delegate": null
+      }
+    ]
+  },
+  {
+    "id": "uncsw",
+    "slug": "uncsw",
+    "name": "UNCSW",
+    "full_name": "UN Commission on the Status of Women",
+    "agenda": "Promoting Gender Equality in the Digital Age with Special Emphasis on Bridging the Digital Gender Divide & role of Pink Tax.",
+    "tag": "Specialized · Gender & tech",
+    "chair": "TBA",
+    "eb": "TBA",
+    "difficulty": "All levels",
+    "handbook_link": "",
+    "order": 4,
+    "portfolios": [
+      {
+        "name": "Islamic Republic of Afghanistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Argentina",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Australia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Austria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bangladesh",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Belgium",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Brazil",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Canada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Chile",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "China",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Croatia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Czech Republic",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Denmark",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Egypt",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Finland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "France",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Germany",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Greece",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Grenada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hungary",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iceland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "India",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Indonesia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iran",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iraq",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Israel",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Italy",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Japan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kazakhstan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Lebanon",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Libya",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Luxembourg",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mexico",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Morocco",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Namibia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nepal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Netherlands",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "New Zealand",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nigeria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Norway",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pakistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Palestine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Poland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Qatar",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Republic Of Korea",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Russia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Rwanda",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Saudi Arabia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "South Africa",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Spain",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sudan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sweden",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Syria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Turkey",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ukraine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Arab Emirates",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Kingdom",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United States of America",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Burkina Faso",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Vietnam",
+        "status": "available",
+        "delegate": null
+      }
+    ]
+  },
+  {
+    "id": "unhrc",
+    "slug": "unhrc",
+    "name": "UNHRC",
+    "full_name": "UN Human Rights Council",
+    "agenda": "Ensuring Human Rights while Expanding National Digital Identity Systems and biometric surveillance frameworks.",
+    "tag": "Rights & digital identity",
+    "chair": "TBA",
+    "eb": "TBA",
+    "difficulty": "Intermediate",
+    "handbook_link": "",
+    "order": 5,
+    "portfolios": [
+      {
+        "name": "Islamic Republic of Afghanistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Argentina",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Australia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Austria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Bangladesh",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Belgium",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Brazil",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Canada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Chile",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "China",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Croatia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Czech Republic",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Denmark",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Egypt",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Finland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "France",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Germany",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Greece",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Grenada",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Hungary",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iceland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "India",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Indonesia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iran",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Iraq",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Israel",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Italy",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Japan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Kazakhstan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Lebanon",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Libya",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Luxembourg",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Mexico",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Morocco",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Namibia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nepal",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Netherlands",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "New Zealand",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Nigeria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Norway",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Pakistan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Palestine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Poland",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Qatar",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Republic Of Korea",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Russia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Rwanda",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Saudi Arabia",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "South Africa",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Spain",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sudan",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Sweden",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Syria",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Turkey",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Ukraine",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Arab Emirates",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United Kingdom",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "United States of America",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Burkina Faso",
+        "status": "available",
+        "delegate": null
+      },
+      {
+        "name": "Vietnam",
+        "status": "available",
+        "delegate": null
+      }
+    ]
+  }
+]
