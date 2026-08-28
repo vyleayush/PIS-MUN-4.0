@@ -686,11 +686,65 @@ const server = http.createServer((req, res) => {
     });
   }
 
-  // Fallback 404
+  // Fallback: If not an API route, serve static files from React build directory
+  if (!pathname.startsWith("/api")) {
+    const buildPath = path.join(__dirname, "../frontend/build");
+    if (fs.existsSync(buildPath)) {
+      let reqPath = pathname === "/" ? "/index.html" : pathname;
+      let filePath = path.join(buildPath, reqPath);
+
+      // Safe path traversal check
+      if (!filePath.startsWith(buildPath)) {
+        return sendJson(403, { detail: "Access forbidden" });
+      }
+
+      // If file doesn't exist (e.g. /admin, /register, /handbook client-side routes), serve index.html
+      if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+        filePath = path.join(buildPath, "index.html");
+      }
+
+      if (fs.existsSync(filePath)) {
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeTypes = {
+          ".html": "text/html",
+          ".js": "application/javascript",
+          ".css": "text/css",
+          ".json": "application/json",
+          ".png": "image/png",
+          ".jpg": "image/jpeg",
+          ".jpeg": "image/jpeg",
+          ".gif": "image/gif",
+          ".svg": "image/svg+xml",
+          ".ico": "image/x-icon",
+          ".pdf": "application/pdf",
+          ".woff": "font/woff",
+          ".woff2": "font/woff2",
+          ".ttf": "font/ttf",
+          ".eot": "application/vnd.ms-fontobject",
+          ".map": "application/json",
+          ".txt": "text/plain"
+        };
+        const contentType = mimeTypes[ext] || "application/octet-stream";
+        try {
+          const content = fs.readFileSync(filePath);
+          res.writeHead(200, {
+            "Content-Type": contentType,
+            "Cache-Control": ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable"
+          });
+          res.end(content);
+          return;
+        } catch (readErr) {
+          return sendJson(500, { detail: "Failed to read static file" });
+        }
+      }
+    }
+  }
+
+  // Fallback 404 for unmatched API routes
   return sendJson(404, { detail: `Route ${req.method} ${pathname} not found` });
 });
 
 server.listen(PORT, () => {
-  console.log(`[Paramount MUN API] Backend server running on http://localhost:${PORT}`);
-  console.log(`[Paramount MUN API] Data directory: ${DATA_DIR}`);
+  console.log(`[Paramount MUN Fullstack] Server running on http://localhost:${PORT}`);
+  console.log(`[Paramount MUN Fullstack] Data directory: ${DATA_DIR}`);
 });
