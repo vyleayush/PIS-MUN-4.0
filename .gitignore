@@ -92,3 +92,5 @@ credentials.json
 *.key
 .credentials
 ziXSTznv
+
+.env
