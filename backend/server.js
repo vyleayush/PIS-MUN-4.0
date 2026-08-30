@@ -560,7 +560,7 @@ const server = http.createServer((req, res) => {
     return sendJson(200, { ok: true });
   }
 
-  // Fallback: If not an API route, serve static files from React build directory
+  // Fallback: If not an API route, serve static files from React build directory (if available)
   if (!pathname.startsWith("/api")) {
     const buildPath = path.join(__dirname, "../frontend/build");
     if (fs.existsSync(buildPath)) {
@@ -611,6 +611,14 @@ const server = http.createServer((req, res) => {
           return sendJson(500, { detail: "Failed to read static file" });
         }
       }
+    } else if (pathname === "/" && req.method === "GET") {
+      // Friendly message for standalone backend deployment
+      return sendJson(200, {
+        message: "Paramount International MUN Backend API is running",
+        status: "healthy",
+        database: "SQLite (paramount_mun.db)",
+        endpoints: "/api/committees, /api/registrations, /api/admin/*",
+      });
     }
   }
 
