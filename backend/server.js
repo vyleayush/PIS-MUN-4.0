@@ -269,8 +269,8 @@ const server = http.createServer((req, res) => {
 
   // --- API Routes ---
 
-  // Health check / Root
-  if ((pathname === "/" || pathname === "/api" || pathname === "/api/") && req.method === "GET") {
+  // Health check
+  if ((pathname === "/api" || pathname === "/api/" || pathname === "/api/health") && req.method === "GET") {
     return sendJson(200, {
       message: "Paramount International MUN API (Node.js & SQLite)",
       status: "healthy",
