@@ -14,7 +14,7 @@ const DEFAULT_COMMITTEES = [
     slug: "unga",
     name: "UNGA",
     full_name: "United Nations General Assembly",
-    agenda: "Addressing global security architecture, state sovereignty, and conflict de-escalation protocols in Eastern Europe and the Middle East.",
+    agenda: "Code of War: Reimagining Global Frameworks for Artificial Intelligence in Modern Combat, Including Cyber Warfare, Surveillance Systems, and the Prevention of Misuse by State and Non- State Actors.",
     tag: "Flagship committee · General Assembly",
     open_count: 42,
     total_count: 60,
@@ -23,7 +23,7 @@ const DEFAULT_COMMITTEES = [
     slug: "aippm",
     name: "AIPPM",
     full_name: "All India Political Parties Meet",
-    agenda: "Reviewing the implementation and socio-economic ramifications of the Uniform Civil Code with special focus on federal autonomy.",
+    agenda: "Deliberation on Electoral Reforms with Special Emphasis on Criminalization of Politics and Transparency.",
     tag: "Indian crisis committee",
     open_count: 28,
     total_count: 50,
@@ -32,7 +32,7 @@ const DEFAULT_COMMITTEES = [
     slug: "who",
     name: "WHO",
     full_name: "World Health Organization",
-    agenda: "Combating the rise of lifestyle diseases among youth and working class (obesity, hypertension, and occupational health).",
+    agenda: "Combating the rise of lifestyle diseases among youth and working class (obesity, hypertension, etc).",
     tag: "Specialized agency",
     open_count: 36,
     total_count: 60,
@@ -41,7 +41,7 @@ const DEFAULT_COMMITTEES = [
     slug: "uncsw",
     name: "UNCSW",
     full_name: "UN Commission on the Status of Women",
-    agenda: "Promoting Gender Equality in the Digital Age with Special Emphasis on Bridging the Digital Gender Divide & role of Pink Tax.",
+    agenda: "Promoting Gender Equality in the Digital Age with Special Emphasis on Bridging the Digital Gender Divide & role of Pink tax.",
     tag: "Specialized · Gender & tech",
     open_count: 31,
     total_count: 60,
@@ -50,7 +50,7 @@ const DEFAULT_COMMITTEES = [
     slug: "unhrc",
     name: "UNHRC",
     full_name: "UN Human Rights Council",
-    agenda: "Ensuring Human Rights while Expanding National Digital Identity Systems and biometric surveillance frameworks.",
+    agenda: "Ensuring Human Rights while Expanding National Digital Identity Systems.",
     tag: "Rights & digital identity",
     open_count: 39,
     total_count: 60,
@@ -73,18 +73,18 @@ function FlipCard({ c, index }) {
   const [flipped, setFlipped] = useState(false);
 
   return (
-    <div className="h-[350px]" style={{ perspective: "2000px" }}>
+    <div className="h-[390px] sm:h-[370px]" style={{ perspective: "2000px" }}>
       <motion.div
         className="relative h-full w-full"
         style={{ transformStyle: "preserve-3d" }}
         animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* FRONT */}
         <button
           data-testid={`committee-card-${c.slug}`}
           onClick={() => setFlipped(true)}
-          className="group absolute inset-0 flex flex-col rounded-3xl border border-border/80 bg-gradient-to-b from-[#0E1426]/90 to-[#070A0F]/90 backdrop-blur-xl p-6 text-left hover:border-brass/80 glow-hover transition-all overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+          className="group absolute inset-0 flex flex-col rounded-3xl border border-border/80 bg-gradient-to-b from-[#0E1426]/90 to-[#070A0F]/90 backdrop-blur-xl p-5 sm:p-6 text-left hover:border-brass/80 glow-hover transition-all overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)] active:scale-[0.99]"
           style={FACE}
         >
           {/* Subtle background glow */}
@@ -94,7 +94,7 @@ function FlipCard({ c, index }) {
             <div className="flex items-center gap-3.5">
               <Emblem slug={c.slug} />
               <div>
-                <h3 className="font-display text-4xl text-foreground group-hover:text-brass transition-colors leading-tight">
+                <h3 className="font-display text-3xl sm:text-4xl text-foreground group-hover:text-brass transition-colors leading-tight">
                   {c.name}
                 </h3>
                 <span className="mono-label text-brass/80 text-[10px]">
@@ -102,28 +102,28 @@ function FlipCard({ c, index }) {
                 </span>
               </div>
             </div>
-            <span className="mono-label text-muted-foreground group-hover:text-brass transition-colors text-xs">
+            <span className="mono-label text-muted-foreground group-hover:text-brass transition-colors text-xs flex items-center gap-1">
               Flip →
             </span>
           </div>
 
-          <p className="mt-4 text-xs font-mono uppercase tracking-wider text-brass relative z-10">{c.tag}</p>
-          <p className="mt-2 text-sm text-secondary-foreground/80 relative z-10 leading-relaxed line-clamp-2">
+          <p className="mt-3.5 text-xs font-mono uppercase tracking-wider text-brass relative z-10">{c.tag}</p>
+          <p className="mt-1.5 text-xs sm:text-sm text-secondary-foreground/85 relative z-10 leading-relaxed line-clamp-3">
             {c.full_name}
           </p>
 
-          <div className="mt-auto relative z-10 pt-4">
+          <div className="mt-auto relative z-10 pt-3">
             <div className="flex items-center gap-2 flex-wrap">
               <span
                 data-testid={`committee-seats-${c.slug}`}
-                className="mono-label rounded-full border border-brass/30 bg-[#1A1710]/80 px-3.5 py-1 text-brass text-xs flex items-center gap-2 shadow-[0_0_12px_rgba(199,163,90,0.2)]"
+                className="mono-label rounded-full border border-brass/30 bg-[#1A1710]/80 px-3 py-1 text-brass text-[11px] sm:text-xs flex items-center gap-2 shadow-[0_0_12px_rgba(199,163,90,0.2)]"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-brass beacon-pulse" />
                 {c.open_count} of {c.total_count} open
               </span>
             </div>
-            <div className="mt-4 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-brass group-hover:translate-x-1 transition-transform">
-              <RotateCw size={13} className="transition-transform duration-500 group-hover:rotate-180" />
+            <div className="mt-3.5 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-brass group-hover:translate-x-1 transition-transform">
+              <RotateCw size={13} className="transition-transform duration-500 group-hover:rotate-180 text-brass" />
               <span>Tap to inspect agenda</span>
             </div>
           </div>
@@ -132,56 +132,56 @@ function FlipCard({ c, index }) {
         {/* BACK */}
         <div
           data-testid={`committee-detail-${c.slug}`}
-          className="absolute inset-0 flex flex-col rounded-3xl border border-brass/60 bg-gradient-to-b from-[#0E1426] to-[#070A0F] p-6 shadow-[0_0_40px_rgba(199,163,90,0.25)]"
+          className="absolute inset-0 flex flex-col rounded-3xl border border-brass/60 bg-gradient-to-b from-[#0E1426] to-[#070A0F] p-5 sm:p-6 shadow-[0_0_40px_rgba(199,163,90,0.25)]"
           style={{ ...FACE, transform: "rotateY(180deg)" }}
         >
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <Emblem slug={c.slug} size={40} />
+              <Emblem slug={c.slug} size={36} />
               <div>
-                <div className="mono-label text-brass text-[10px]">{c.tag}</div>
-                <h3 className="font-display text-3xl text-foreground leading-none mt-1">{c.name}</h3>
+                <div className="mono-label text-brass text-[9.5px]">{c.tag}</div>
+                <h3 className="font-display text-2xl sm:text-3xl text-foreground leading-none mt-0.5">{c.name}</h3>
               </div>
             </div>
             <button
               onClick={() => setFlipped(false)}
               data-testid={`committee-flip-back-${c.slug}`}
-              className="h-8 w-8 shrink-0 rounded-full border border-border bg-card/60 flex items-center justify-center text-muted-foreground hover:text-brass hover:border-brass transition-colors"
+              className="h-8 w-8 shrink-0 rounded-full border border-border bg-card/60 flex items-center justify-center text-muted-foreground hover:text-brass hover:border-brass transition-colors active:scale-90"
               aria-label="Flip back"
             >
               <RotateCcw size={14} />
             </button>
           </div>
 
-          <div className="mt-3 flex-1 overflow-y-auto no-scrollbar pr-1">
-            <div className="mono-label text-brass text-[10px] mb-1">Agenda Focus</div>
-            <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">{c.agenda}</p>
+          <div className="mt-3 flex-1 overflow-y-auto no-scrollbar pr-1 touch-pan-y">
+            <div className="mono-label text-brass text-[10px] mb-1">Official Agenda</div>
+            <p className="text-xs sm:text-sm text-foreground/95 leading-relaxed">{c.agenda}</p>
 
-            <div className="mt-4">
-              <div className="rounded-xl border border-border/80 bg-white/[0.03] p-3">
-                <div className="flex items-center gap-1.5 mono-label text-muted-foreground text-[10px]">
+            <div className="mt-3">
+              <div className="rounded-xl border border-border/80 bg-white/[0.03] p-2.5">
+                <div className="flex items-center gap-1.5 mono-label text-muted-foreground text-[9.5px]">
                   <Users size={12} className="text-brass" /> Live allotment status
                 </div>
-                <div className="font-display text-2xl text-brass mt-0.5">
+                <div className="font-display text-xl sm:text-2xl text-brass mt-0.5">
                   {c.open_count}
-                  <span className="text-muted-foreground text-base">/{c.total_count}</span>{" "}
+                  <span className="text-muted-foreground text-sm">/{c.total_count}</span>{" "}
                   <span className="text-muted-foreground text-xs font-mono">seats open</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 flex gap-2">
+          <div className="mt-3 flex gap-2 pt-1 border-t border-border/50">
             <Link
               to="/handbook"
               data-testid={`committee-download-handbook-${c.slug}`}
-              className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card/80 text-xs font-medium text-foreground hover:border-brass hover:text-brass transition-all"
+              className="inline-flex h-9 sm:h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card/80 text-xs font-medium text-foreground hover:border-brass hover:text-brass transition-all active:scale-95"
             >
               <Download size={13} /> Handbook
             </Link>
             <Link
               to="/register"
-              className="btn-luxury inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] text-xs font-semibold text-[#070A0F] transition-all shadow-[0_0_20px_rgba(199,163,90,0.4)]"
+              className="btn-luxury inline-flex h-9 sm:h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] text-xs font-semibold text-[#070A0F] transition-all shadow-[0_0_20px_rgba(199,163,90,0.4)] active:scale-95"
             >
               Register <ArrowRight size={13} />
             </Link>
@@ -222,7 +222,7 @@ export const Committees = () => {
               <span>/ 05 Committees · Chapter IV</span>
             </div>
             <h2 className="section-heading text-foreground max-w-2xl">
-              Five committees.<br />One will be yours.
+              Select and register your committee
             </h2>
             <p className="mt-4 max-w-xl text-base sm:text-lg text-secondary-foreground/80 leading-relaxed">
               Tap any placard to flip it in 3D — inspect the agenda, chair vision, and live seat matrix updated in real time.

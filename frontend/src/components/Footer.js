@@ -31,15 +31,20 @@ export const Footer = () => (
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2 text-foreground">
               <Mail size={15} className="text-brass" />
-              <a href="mailto:paramountinternationalmun.26@gmail.com" className="hover:text-brass transition-colors break-all">paramountinternationalmun.26@gmail.com</a>
+              <a href="mailto:paramountmun.26@gmail.com" className="hover:text-brass transition-colors break-all">paramountmun.26@gmail.com</a>
             </li>
             <li className="flex items-center gap-2 text-foreground">
               <Instagram size={15} className="text-brass" />
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-brass transition-colors">@paramountmun</a>
+              <a href="https://instagram.com/theparamountmun4.o" target="_blank" rel="noreferrer" className="hover:text-brass transition-colors">@theparamountmun4.o</a>
             </li>
-            <li className="flex items-start gap-2 text-foreground">
-              <MapPin size={15} className="text-brass mt-0.5" />
-              <span>Paramount International School</span>
+            <li className="flex items-start gap-2 text-foreground text-xs leading-relaxed">
+              <MapPin size={15} className="text-brass shrink-0 mt-0.5" />
+              <span>Paramount International School, Sector 23, Dwarka, New Delhi 110077</span>
+            </li>
+            <li className="pt-2 text-xs text-muted-foreground border-t border-border/50">
+              <div className="font-semibold text-brass mb-1">Incharges</div>
+              <div>Garima Rana: +91 88829 57182</div>
+              <div>Surbhi Sachdeva: +91 97188 19355</div>
             </li>
           </ul>
         </div>

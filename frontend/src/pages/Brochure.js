@@ -181,7 +181,7 @@ export default function Brochure() {
         </div>
 
         {/* Bottom Quick Navigation & Help */}
-        <div className="grid sm:grid-cols-3 gap-4 pb-6">
+        <div className="grid sm:grid-cols-4 gap-4 pb-6">
           <div className="p-4 rounded-xl border border-border/70 bg-card/40 flex items-start gap-3">
             <div className="p-2 rounded-lg bg-brass/10 text-brass">
               <Layers size={18} />
@@ -197,14 +197,23 @@ export default function Brochure() {
 
           <div className="p-4 rounded-xl border border-border/70 bg-card/40 flex items-start gap-3">
             <div className="p-2 rounded-lg bg-brass/10 text-brass">
+              <Award size={18} />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-foreground">Cash Prizes</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">Best Delegate: ₹3,100 · High Commendation: ₹2,100</p>
+              <span className="text-[11px] text-brass/90 mt-1 inline-block">Trophies & kits for all</span>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-border/70 bg-card/40 flex items-start gap-3">
+            <div className="p-2 rounded-lg bg-brass/10 text-brass">
               <Calendar size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">9 & 10 October 2026</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Paramount International School, Sector 23 Dwarka</p>
-              <Link to="/#schedule" className="text-xs text-brass hover:underline mt-1 inline-block">
-                View schedule →
-              </Link>
+              <h4 className="text-sm font-semibold text-foreground">9 & 10 Oct 2026</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">Fee: ₹2,000 / ₹1,500 (Paramount)</p>
+              <span className="text-[11px] text-muted-foreground mt-1 inline-block">Sector 23, Dwarka</span>
             </div>
           </div>
 
@@ -213,8 +222,8 @@ export default function Brochure() {
               <Sparkles size={18} />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Ready to participate?</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Secure your country or portfolio now.</p>
+              <h4 className="text-sm font-semibold text-foreground">Register Now</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">Secure your country or portfolio.</p>
               <Link to="/register" className="text-xs text-brass hover:underline font-semibold mt-1 inline-block">
                 Register for MUN →
               </Link>

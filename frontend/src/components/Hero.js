@@ -212,42 +212,46 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55 }}
-            className="mt-8 flex flex-wrap gap-4 justify-center"
+            className="mt-7 sm:mt-8 w-full max-w-lg mx-auto flex flex-col items-center gap-3 px-2"
           >
+            {/* Primary Action Button */}
             <Link
               to="/register"
               data-testid="hero-register-now-button"
-              className="btn-luxury group inline-flex h-12 sm:h-14 items-center gap-2.5 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-8 sm:px-10 text-sm sm:text-base font-semibold text-[#070A0F] hover:shadow-[0_0_40px_rgba(199,163,90,0.8)] transition-all"
+              className="btn-luxury group w-full sm:w-auto inline-flex h-12 sm:h-14 items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-8 sm:px-10 text-sm sm:text-base font-semibold text-[#070A0F] hover:shadow-[0_0_40px_rgba(199,163,90,0.8)] transition-all active:scale-[0.98]"
             >
               <Sparkles size={18} className="text-[#070A0F]" />
-              <span>Register Now</span>
+              <span>Register Now — Chapter IV</span>
               <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
 
-            <button
-              data-testid="hero-view-committees-button"
-              onClick={() => document.querySelector("#committees")?.scrollIntoView({ behavior: "smooth" })}
-              className="card-luxury inline-flex h-12 sm:h-14 items-center rounded-full border border-brass/40 bg-card/60 backdrop-blur-md px-7 sm:px-9 text-sm sm:text-base font-medium text-foreground hover:border-brass hover:text-brass transition-all"
-            >
-              View Committees
-            </button>
+            {/* Mobile-Optimized Secondary Action Row */}
+            <div className="flex items-center justify-center gap-2 w-full flex-wrap sm:flex-nowrap">
+              <button
+                data-testid="hero-view-committees-button"
+                onClick={() => document.querySelector("#committees")?.scrollIntoView({ behavior: "smooth" })}
+                className="card-luxury flex-1 sm:flex-none inline-flex h-10 sm:h-12 items-center justify-center rounded-full border border-brass/40 bg-card/60 backdrop-blur-md px-4 sm:px-7 text-xs sm:text-sm font-medium text-foreground hover:border-brass hover:text-brass transition-all active:scale-95"
+              >
+                Committees
+              </button>
 
-            <button
-              data-testid="hero-view-brochure-button"
-              onClick={() => document.querySelector("#brochure")?.scrollIntoView({ behavior: "smooth" })}
-              className="card-luxury inline-flex h-12 sm:h-14 items-center gap-2 rounded-full border border-brass/30 bg-brass/10 backdrop-blur-md px-6 sm:px-7 text-sm font-medium text-brass hover:bg-brass hover:text-[#070A0F] transition-all"
-            >
-              <FileText size={16} />
-              <span>Brochure</span>
-            </button>
+              <button
+                data-testid="hero-view-brochure-button"
+                onClick={() => document.querySelector("#brochure")?.scrollIntoView({ behavior: "smooth" })}
+                className="card-luxury flex-1 sm:flex-none inline-flex h-10 sm:h-12 items-center justify-center gap-1.5 rounded-full border border-brass/30 bg-brass/10 backdrop-blur-md px-4 sm:px-6 text-xs sm:text-sm font-medium text-brass hover:bg-brass hover:text-[#070A0F] transition-all active:scale-95"
+              >
+                <FileText size={14} />
+                <span>Brochure</span>
+              </button>
 
-            <button
-              data-testid="hero-view-handbook-button"
-              onClick={() => document.querySelector("#handbook")?.scrollIntoView({ behavior: "smooth" })}
-              className="card-luxury inline-flex h-12 sm:h-14 items-center rounded-full border border-border/80 bg-card/40 backdrop-blur-md px-6 sm:px-7 text-sm font-medium text-muted-foreground hover:border-brass/50 hover:text-foreground transition-all"
-            >
-              Delegate Handbook
-            </button>
+              <button
+                data-testid="hero-view-handbook-button"
+                onClick={() => document.querySelector("#handbook")?.scrollIntoView({ behavior: "smooth" })}
+                className="card-luxury flex-1 sm:flex-none inline-flex h-10 sm:h-12 items-center justify-center rounded-full border border-border/80 bg-card/40 backdrop-blur-md px-4 sm:px-6 text-xs sm:text-sm font-medium text-muted-foreground hover:border-brass/50 hover:text-foreground transition-all active:scale-95"
+              >
+                Handbook
+              </button>
+            </div>
           </motion.div>
 
           {/* Dates & Venue Info Pill */}

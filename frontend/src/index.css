@@ -78,6 +78,10 @@
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, a {
+    touch-action: manipulation;
   }
   ::selection {
     background: #C7A35A;

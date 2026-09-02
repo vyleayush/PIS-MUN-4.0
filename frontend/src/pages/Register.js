@@ -26,7 +26,7 @@ const Field = ({ label, required, children, hint }) => (
 );
 
 const inputCls =
-  "bg-white/[0.02] border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-brass h-11";
+  "bg-white/[0.02] border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-brass h-11 text-base sm:text-sm";
 
 const DEFAULT_COMMITTEES = [
   { slug: "unga", name: "UNGA", open_count: 42, total_count: 60, portfolios: [] },

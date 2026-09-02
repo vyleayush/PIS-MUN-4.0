@@ -28,26 +28,26 @@ const HIGHLIGHTS = [
   {
     icon: Layers,
     title: "5 Dynamic Committees",
-    desc: "Complete agendas, study guides overview, and background guides for UNGA, AIPPM, WHO, UNCSW, and UNHRC.",
+    desc: "Complete agendas for UNGA (AI Combat), AIPPM (Electoral Reforms), WHO, UNCSW (Pink Tax), and UNHRC.",
     badge: "Agendas & Portfolios",
   },
   {
-    icon: Calendar,
-    title: "Official 2-Day Itinerary",
-    desc: "Hour-by-hour schedule of committee sessions, crisis updates, social events, lunch breaks, and plenary.",
-    badge: "Schedule",
+    icon: Award,
+    title: "Rewards & Cash Prizes",
+    desc: "Best Delegate (₹3,100), High Commendation (₹2,100), Special Mentions (Trophies), Certificates & Kits for all.",
+    badge: "₹3,100 / ₹2,100 Cash",
   },
   {
-    icon: Award,
-    title: "Prizes & Recognition",
-    desc: "Detailed matrix of Best Delegate, High Commendation, Special Mention, and Best Delegation awards.",
-    badge: "Awards & Matrix",
+    icon: Calendar,
+    title: "Participation & Fee",
+    desc: "₹2,000 for Non-Paramount students / ₹1,500 for Paramount students. 9th & 10th October 2026.",
+    badge: "9–10 Oct 2026",
   },
   {
     icon: ShieldCheck,
-    title: "Rules of Procedure (RoP)",
-    desc: "Executive guidelines on UNA-USA procedure, points & motions, resolution drafting, and delegate conduct.",
-    badge: "Regulations",
+    title: "Conference Incharges",
+    desc: "Garima Rana (+91 88829 57182) & Surbhi Sachdeva (+91 97188 19355) · paramountmun.26@gmail.com",
+    badge: "Official Contacts",
   },
 ];
 

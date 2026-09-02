@@ -12,6 +12,7 @@ import { FAQ } from "@/components/FAQ";
 import { MDMessage } from "@/components/MDMessage";
 import { RegisterCTA } from "@/components/RegisterCTA";
 import { Footer } from "@/components/Footer";
+import { MobileBottomDock } from "@/components/MobileBottomDock";
 
 export default function Home() {
   const location = useLocation();
@@ -24,7 +25,7 @@ export default function Home() {
   }, [location]);
 
   return (
-    <div className="bg-background min-h-screen text-foreground selection:bg-brass selection:text-[#070A0F]">
+    <div className="bg-background min-h-screen text-foreground selection:bg-brass selection:text-[#070A0F] overflow-x-hidden">
       <Nav />
       <main>
         <Hero />
@@ -39,6 +40,7 @@ export default function Home() {
         <RegisterCTA />
       </main>
       <Footer />
+      <MobileBottomDock />
     </div>
   );
 }

@@ -2,11 +2,11 @@ import React from "react";
 import { useCountdown } from "@/hooks/useCountdown";
 
 const Unit = ({ value, label, testid }) => (
-  <div className="flex flex-col items-center rounded-2xl border border-border bg-white/[0.02] px-3 py-3 sm:px-4 sm:py-4 min-w-[64px] sm:min-w-[84px]">
-    <span data-testid={testid} className="font-mono tabular-nums text-2xl sm:text-4xl text-foreground">
+  <div className="flex flex-col items-center rounded-xl sm:rounded-2xl border border-border/80 bg-white/[0.02] px-2.5 py-2.5 sm:px-4 sm:py-4 min-w-[58px] sm:min-w-[84px] shadow-sm">
+    <span data-testid={testid} className="font-mono tabular-nums text-xl sm:text-4xl text-foreground font-semibold">
       {String(value).padStart(2, "0")}
     </span>
-    <span className="mono-label text-muted-foreground mt-1">{label}</span>
+    <span className="mono-label text-muted-foreground mt-0.5 text-[8.5px] sm:text-[11px]">{label}</span>
   </div>
 );
 
