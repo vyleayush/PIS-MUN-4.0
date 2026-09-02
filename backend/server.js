@@ -23,6 +23,15 @@ function loadEnv() {
 }
 loadEnv();
 
+// Safety guards to keep backend process resilient and prevent unexpected termination
+process.on("uncaughtException", (err) => {
+  console.error("[CRITICAL] Uncaught Exception:", err.message || err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[CRITICAL] Unhandled Promise Rejection:", reason);
+});
+
 const PORT = process.env.PORT || 8000;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "paramountinternationalmun.26@gmail.com";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Mun0910@";
