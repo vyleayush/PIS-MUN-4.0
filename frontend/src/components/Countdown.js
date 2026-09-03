@@ -33,7 +33,7 @@ const FlipDigitCard = ({ value, label, testid, compact = false, reducedMotion = 
 
   return (
     <div
-      className={`relative flex flex-col items-center rounded-xl sm:rounded-2xl border border-brass/35 bg-gradient-to-b from-[#161B28]/95 to-[#0B0F19]/95 backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.06)] overflow-hidden ${
+      className={`relative flex flex-col items-center rounded-xl sm:rounded-2xl border border-brass/35 bg-gradient-to-b from-[#161B28]/95 to-[#0B0F19]/95 backdrop-blur-md overflow-hidden ${
         compact
           ? "px-2 py-2 min-w-[50px] sm:min-w-[62px]"
           : "px-2.5 py-2.5 sm:px-4 sm:py-3.5 min-w-[58px] sm:min-w-[86px]"
@@ -56,17 +56,9 @@ const FlipDigitCard = ({ value, label, testid, compact = false, reducedMotion = 
           <motion.span
             key={formatted}
             data-testid={testid}
-            initial={
-              reducedMotion
-                ? { opacity: 0, y: 8 }
-                : { y: "48%", opacity: 0, rotateX: -55 }
-            }
-            animate={{ y: "0%", opacity: 1, rotateX: 0 }}
-            exit={
-              reducedMotion
-                ? { opacity: 0, y: -8 }
-                : { y: "-48%", opacity: 0, rotateX: 55 }
-            }
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{
               duration: 0.6,
               ease: [0.22, 1, 0.36, 1], // 600ms smooth cubic-bezier transition
@@ -74,7 +66,7 @@ const FlipDigitCard = ({ value, label, testid, compact = false, reducedMotion = 
             className={`font-mono tabular-nums font-bold text-foreground inline-block select-none ${
               compact
                 ? "text-lg sm:text-2xl"
-                : "text-2xl sm:text-4xl text-[#F4EBD0] drop-shadow-[0_2px_8px_rgba(199,163,90,0.25)]"
+                : "text-2xl sm:text-4xl text-[#F4EBD0]"
             }`}
           >
             {formatted}

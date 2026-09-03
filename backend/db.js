@@ -154,7 +154,7 @@ const DEFAULT_COMMITTEES = [
 ];
 
 const DEFAULT_REFERRAL_CODES = [
-  { code: "PARAMOUNT500", discount: 500, label: "Paramount Ambassador Discount", active: 1, usage_count: 0 },
+  { code: "PARAMOUNT200", discount: 200, label: "Paramount Ambassador Discount", active: 1, usage_count: 0 },
   { code: "DELEGATE2026", discount: 500, label: "Early Delegate Discount", active: 1, usage_count: 0 },
 ];
 

@@ -104,6 +104,9 @@ export default function Register() {
   // Calculate fee based on referral code
   const calculateFee = () => {
     if (refState === 'valid' && f.referral_code.trim()) {
+      if (f.referral_code.trim().toUpperCase() === 'PARAMOUNT200') {
+        return 1500;
+      }
       return 1200; // BASE_FEE (1700) - discount (500)
     }
     return 1700; // BASE_FEE
@@ -151,6 +154,12 @@ export default function Register() {
   const checkReferral = async () => {
     const code = f.referral_code.trim();
     if (!code) { setRefState(null); setRefResult(null); return; }
+    if (code.toUpperCase() === "PARAMOUNT200") {
+      setRefState("valid"); 
+      setRefResult({ valid: true, label: "Paramount Discount" }); 
+      toast.success("Paramount code applied");
+      return;
+    }
     try {
       const r = await validateReferral(code);
       if (r.valid) { setRefState("valid"); setRefResult(r); toast.success("Referral code applied"); }
@@ -351,7 +360,7 @@ export default function Register() {
                       </div>
                     </Field>
                     {refState === "valid" && (
-                      <div className="flex items-center gap-2 text-sm text-[#2FBF71]"><ShieldCheck size={15} /> Code accepted{refResult?.label ? ` — ${refResult.label}` : ""}. You get ₹500 off.</div>
+                      <div className="flex items-center gap-2 text-sm text-[#2FBF71]"><ShieldCheck size={15} /> Code accepted{refResult?.label ? ` — ${refResult.label}` : ""}. You get {f.referral_code.trim().toUpperCase() === 'PARAMOUNT200' ? "₹200" : "₹500"} off.</div>
                     )}
                     {refState === "invalid" && f.referral_code && (
                       <div className="text-sm text-destructive">This code isn't recognised. You can still register without one.</div>

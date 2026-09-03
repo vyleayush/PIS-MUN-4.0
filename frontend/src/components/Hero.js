@@ -76,9 +76,6 @@ export const Hero = () => {
   const timer = useRef(null);
 
   const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 420], [1, 0]);
-  const yShift = useTransform(scrollY, [0, 480], [0, -50]);
-  const scale = useTransform(scrollY, [0, 480], [1, 1.05]);
 
   useEffect(() => {
     HERO_PHOTOS.forEach((src) => {
@@ -98,7 +95,7 @@ export const Hero = () => {
   return (
     <section className="relative min-h-screen w-full overflow-hidden grain flex items-center justify-center">
       {/* Background Photo Parallax Layer */}
-      <motion.div className="absolute inset-0 bg-[#070A0F]" style={reduced ? {} : { scale }}>
+      <motion.div className="absolute inset-0 bg-[#070A0F]">
         <AnimatePresence mode="sync">
           <motion.img
             key={index}
@@ -126,14 +123,9 @@ export const Hero = () => {
       />
 
       <Wires />
-      {!reduced && <Sprinkles />}
-
-      {/* 3D Kinetic Model (Always running at high speed) */}
-      {!reduced && <Hero3DScene />}
 
       {/* Content Container (transitions smoothly on scroll) */}
       <motion.div
-        style={reduced ? {} : { opacity, y: yShift }}
         className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col items-center justify-center text-center pt-28 pb-20"
       >
         <motion.div
@@ -224,34 +216,6 @@ export const Hero = () => {
               <span>Register Now — Chapter IV</span>
               <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
-
-            {/* Mobile-Optimized Secondary Action Row */}
-            <div className="flex items-center justify-center gap-2 w-full flex-wrap sm:flex-nowrap">
-              <button
-                data-testid="hero-view-committees-button"
-                onClick={() => document.querySelector("#committees")?.scrollIntoView({ behavior: "smooth" })}
-                className="card-luxury flex-1 sm:flex-none inline-flex h-10 sm:h-12 items-center justify-center rounded-full border border-brass/40 bg-card/60 backdrop-blur-md px-4 sm:px-7 text-xs sm:text-sm font-medium text-foreground hover:border-brass hover:text-brass transition-all active:scale-95"
-              >
-                Committees
-              </button>
-
-              <button
-                data-testid="hero-view-brochure-button"
-                onClick={() => document.querySelector("#brochure")?.scrollIntoView({ behavior: "smooth" })}
-                className="card-luxury flex-1 sm:flex-none inline-flex h-10 sm:h-12 items-center justify-center gap-1.5 rounded-full border border-brass/30 bg-brass/10 backdrop-blur-md px-4 sm:px-6 text-xs sm:text-sm font-medium text-brass hover:bg-brass hover:text-[#070A0F] transition-all active:scale-95"
-              >
-                <FileText size={14} />
-                <span>Brochure</span>
-              </button>
-
-              <button
-                data-testid="hero-view-handbook-button"
-                onClick={() => document.querySelector("#handbook")?.scrollIntoView({ behavior: "smooth" })}
-                className="card-luxury flex-1 sm:flex-none inline-flex h-10 sm:h-12 items-center justify-center rounded-full border border-border/80 bg-card/40 backdrop-blur-md px-4 sm:px-6 text-xs sm:text-sm font-medium text-muted-foreground hover:border-brass/50 hover:text-foreground transition-all active:scale-95"
-              >
-                Handbook
-              </button>
-            </div>
           </motion.div>
 
           {/* Dates & Venue Info Pill */}

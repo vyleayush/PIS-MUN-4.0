@@ -50,9 +50,16 @@ export const Schedule = () => (
               <AccordionItem key={d.id} value={d.id} className="border-b border-border/70 last:border-b-0 px-2 sm:px-4">
                 <AccordionTrigger data-testid={`schedule-${d.id}`} className="hover:no-underline py-5 group">
                   <div className="flex items-baseline gap-4">
-                    <span className="font-display text-3xl sm:text-4xl text-foreground group-hover:text-brass transition-colors">
+                    <motion.span 
+                      initial={{ y: "48%", opacity: 0, rotateX: -55 }}
+                      whileInView={{ y: "0%", opacity: 1, rotateX: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ perspective: "600px", display: "inline-block" }}
+                      className="font-display text-3xl sm:text-4xl text-foreground group-hover:text-brass transition-colors"
+                    >
                       {d.label}
-                    </span>
+                    </motion.span>
                     <span className="mono-label text-brass bg-brass/10 border border-brass/30 px-2.5 py-0.5 rounded-full text-xs">
                       {d.date}
                     </span>
