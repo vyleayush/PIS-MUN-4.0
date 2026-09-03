@@ -14,7 +14,7 @@ const FAQS = [
   },
   {
     q: "What's the delegate fee, and what's included?",
-    a: "The delegate fee is ₹2000 per delegate. It covers your full delegate kit — a pad file, an ID card, a pen, and a notepad — plus meals across both conference days. You'll complete payment via UPI at the final step of registration.",
+    a: "The delegate fee is ₹1700 per delegate. It covers your full delegate kit — a pad file, an ID card, a pen, and a notepad — plus meals across both conference days. You'll complete payment via UPI at the final step of registration.",
   },
   {
     q: "What's your refund policy?",

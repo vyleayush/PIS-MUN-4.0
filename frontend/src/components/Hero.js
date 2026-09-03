@@ -195,7 +195,7 @@ export const Hero = () => {
             transition={{ duration: 0.7, delay: 0.4 }}
             className="mt-6 max-w-2xl text-base sm:text-lg text-secondary-foreground/90 leading-relaxed font-normal"
           >
-            Two days. Five committees. One room where the loudest idea doesn't win — the sharpest one does. Chapter IV is now open.
+            Two days. Five committees. One platform where the loudest idea doesn't win — the sharpest one does. Chapter IV is now open.
           </motion.p>
 
           <motion.div
@@ -287,12 +287,8 @@ export const Hero = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.75 }}
-            className="mt-10 flex flex-col items-center gap-3 p-4 sm:p-5 rounded-3xl border border-brass/30 bg-card/50 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6),0_0_20px_rgba(199,163,90,0.15)]"
+            className="mt-10 w-full flex justify-center"
           >
-            <div className="mono-label text-muted-foreground flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-brass beacon-pulse" />
-              <span>Countdown to Opening Plenary</span>
-            </div>
             <Countdown />
           </motion.div>
         </motion.div>

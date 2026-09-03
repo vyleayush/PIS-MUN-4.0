@@ -113,16 +113,49 @@ function FlipCard({ c, index }) {
           </p>
 
           <div className="mt-auto relative z-10 pt-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                data-testid={`committee-seats-${c.slug}`}
-                className="mono-label rounded-full border border-brass/30 bg-[#1A1710]/80 px-3 py-1 text-brass text-[11px] sm:text-xs flex items-center gap-2 shadow-[0_0_12px_rgba(199,163,90,0.2)]"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-brass beacon-pulse" />
-                {c.open_count} of {c.total_count} open
-              </span>
-            </div>
-            <div className="mt-3.5 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-brass group-hover:translate-x-1 transition-transform">
+            {(() => {
+              const total = c.total_count || 60;
+              const open = c.open_count !== undefined ? c.open_count : 40;
+              const filled = Math.max(0, total - open);
+              const fillPct = Math.min(100, Math.round((filled / total) * 100));
+              const isFull = open === 0;
+
+              return (
+                <>
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                    <span
+                      data-testid={`committee-seats-${c.slug}`}
+                      className={`mono-label rounded-full border px-3 py-1 text-[11px] sm:text-xs flex items-center gap-2 ${
+                        isFull
+                          ? "border-red-500/40 bg-red-950/40 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.2)]"
+                          : open <= 5
+                          ? "border-amber-500/40 bg-amber-950/40 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                          : "border-brass/30 bg-[#1A1710]/80 text-brass shadow-[0_0_12px_rgba(199,163,90,0.2)]"
+                      }`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full beacon-pulse ${isFull ? "bg-red-400" : "bg-brass"}`} />
+                      {isFull ? "Full · Waitlist only" : `${open} of ${total} open`}
+                    </span>
+                    <span className="mono-label text-[10px] text-muted-foreground">
+                      {fillPct}% filled
+                    </span>
+                  </div>
+
+                  {/* Seat capacity fill bar */}
+                  <div className="w-full bg-white/[0.06] rounded-full h-1.5 overflow-hidden border border-white/[0.05]">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        isFull
+                          ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
+                          : "bg-gradient-to-r from-brass/70 via-brass to-[#E7C978] shadow-[0_0_8px_rgba(199,163,90,0.4)]"
+                      }`}
+                      style={{ width: `${Math.max(5, fillPct)}%` }}
+                    />
+                  </div>
+                </>
+              );
+            })()}
+            <div className="mt-3 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-brass group-hover:translate-x-1 transition-transform">
               <RotateCw size={13} className="transition-transform duration-500 group-hover:rotate-180 text-brass" />
               <span>Tap to inspect agenda</span>
             </div>
@@ -157,18 +190,43 @@ function FlipCard({ c, index }) {
             <div className="mono-label text-brass text-[10px] mb-1">Official Agenda</div>
             <p className="text-xs sm:text-sm text-foreground/95 leading-relaxed">{c.agenda}</p>
 
-            <div className="mt-3">
-              <div className="rounded-xl border border-border/80 bg-white/[0.03] p-2.5">
-                <div className="flex items-center gap-1.5 mono-label text-muted-foreground text-[9.5px]">
-                  <Users size={12} className="text-brass" /> Live allotment status
+            {(() => {
+              const total = c.total_count || 60;
+              const open = c.open_count !== undefined ? c.open_count : 40;
+              const filled = Math.max(0, total - open);
+              const fillPct = Math.min(100, Math.round((filled / total) * 100));
+
+              return (
+                <div className="mt-3">
+                  <div className="rounded-xl border border-border/80 bg-white/[0.03] p-2.5">
+                    <div className="flex items-center justify-between mono-label text-muted-foreground text-[9.5px]">
+                      <span className="flex items-center gap-1.5">
+                        <Users size={12} className="text-brass" /> Live allotment status
+                      </span>
+                      <span className="text-brass font-semibold">{fillPct}% filled</span>
+                    </div>
+                    <div className="font-display text-xl sm:text-2xl text-brass mt-0.5 flex items-baseline justify-between">
+                      <div>
+                        {open}
+                        <span className="text-muted-foreground text-sm">/{total}</span>{" "}
+                        <span className="text-muted-foreground text-xs font-mono">seats open</span>
+                      </div>
+                      <span className="text-[11px] font-mono text-muted-foreground">
+                        ({filled} filled)
+                      </span>
+                    </div>
+
+                    {/* Progress fill bar on back */}
+                    <div className="mt-2 w-full bg-black/40 rounded-full h-1.5 overflow-hidden border border-white/[0.05]">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-brass/70 via-brass to-[#E7C978]"
+                        style={{ width: `${Math.max(5, fillPct)}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="font-display text-xl sm:text-2xl text-brass mt-0.5">
-                  {c.open_count}
-                  <span className="text-muted-foreground text-sm">/{c.total_count}</span>{" "}
-                  <span className="text-muted-foreground text-xs font-mono">seats open</span>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
           <div className="mt-3 flex gap-2 pt-1 border-t border-border/50">

@@ -90,7 +90,9 @@ frontend/node_modules/.cache/default-development/8.pack
 *.env
 credentials.json
 *.key
-.credentials
-ziXSTznv
+# SQLite temp files
+*.db-wal
+*.db-shm
+*.db-journal
 
 .env

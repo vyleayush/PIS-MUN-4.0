@@ -57,7 +57,7 @@ db.exec(`
     preference3 TEXT DEFAULT '{}', -- JSON
     referral_code TEXT DEFAULT '',
     applied_referral TEXT,
-    fee INTEGER DEFAULT 2000,
+    fee INTEGER DEFAULT 1700,
     fee_tier TEXT DEFAULT 'Standard',
     payment_status TEXT DEFAULT 'pending',
     payment_screenshot TEXT DEFAULT '',
@@ -271,7 +271,7 @@ function seedDatabase() {
                 preference3: JSON.stringify(r.preference3 || {}),
                 referral_code: r.referral_code || "",
                 applied_referral: r.applied_referral || null,
-                fee: r.fee || 2000,
+                fee: r.fee || 1700,
                 fee_tier: r.fee_tier || "Standard",
                 payment_status: r.payment_status || "pending",
                 payment_screenshot: r.payment_screenshot || "",
@@ -489,7 +489,7 @@ const dbHelpers = {
       preference3: JSON.stringify(data.preference3 || {}),
       referral_code: data.referral_code || "",
       applied_referral: data.applied_referral || null,
-      fee: data.fee || 2000,
+      fee: data.fee || 1700,
       fee_tier: data.fee_tier || "Standard",
       payment_status: data.payment_status || "pending",
       payment_screenshot: data.payment_screenshot || "",
@@ -555,7 +555,7 @@ const dbHelpers = {
       preference3: typeof merged.preference3 === "object" ? JSON.stringify(merged.preference3) : merged.preference3,
       referral_code: merged.referral_code || "",
       applied_referral: merged.applied_referral || null,
-      fee: merged.fee || 2000,
+      fee: merged.fee || 1700,
       fee_tier: merged.fee_tier || "Standard",
       payment_status: merged.payment_status || "pending",
       payment_screenshot: merged.payment_screenshot || "",
@@ -581,7 +581,7 @@ const dbHelpers = {
     const rejected = regs.filter((r) => r.payment_status === "rejected").length;
     const total_revenue = regs
       .filter((r) => r.payment_status === "verified")
-      .reduce((sum, r) => sum + (r.fee || 2000), 0);
+      .reduce((sum, r) => sum + (r.fee || 1700), 0);
 
     return {
       total,

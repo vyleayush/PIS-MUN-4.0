@@ -96,17 +96,17 @@ export default function Register() {
 
   const portfoliosFor = (slug) => {
     const c = committees.find((x) => x.slug === slug);
-    if (!c) return [];
-    return c.portfolios.filter((p) => p.status === "available");
+    if (!c || !Array.isArray(c.portfolios)) return [];
+    return c.portfolios.filter((p) => p && p.status === "available");
   };
   const cName = (slug) => committees.find((c) => c.slug === slug)?.name || slug;
   
   // Calculate fee based on referral code
   const calculateFee = () => {
     if (refState === 'valid' && f.referral_code.trim()) {
-      return 1500; // BASE_FEE (2000) - discount (500)
+      return 1200; // BASE_FEE (1700) - discount (500)
     }
-    return 2000; // BASE_FEE
+    return 1700; // BASE_FEE
   };
 
   const validateStep = () => {
@@ -294,11 +294,17 @@ export default function Register() {
                         <Select value={pref.committee} onValueChange={(v) => { setPref(which, "committee", v); setPref(which, "portfolio", ""); }}>
                           <SelectTrigger data-testid={`reg-${which}-committee`} className={inputCls}><SelectValue placeholder="Select a committee" /></SelectTrigger>
                           <SelectContent>
-                            {committees.map((c) => (
-                              <SelectItem key={c.slug} value={c.slug}>
-                                {c.name} — {c.open_count} of {c.total_count} open
-                              </SelectItem>
-                            ))}
+                            {committees.map((c) => {
+                              const total = c.total_count || 60;
+                              const open = c.open_count !== undefined ? c.open_count : 40;
+                              const isFull = open === 0;
+                              const fillPct = total ? Math.round(((total - open) / total) * 100) : 0;
+                              return (
+                                <SelectItem key={c.slug} value={c.slug}>
+                                  {c.name} — {isFull ? "FULL (Waitlist Only)" : `${open} of ${total} open (${fillPct}% filled)`}
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                       </Field>

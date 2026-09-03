@@ -5,29 +5,33 @@ export const DAY1_START = new Date("2026-10-09T09:00:00+05:30");
 export const DAY2_START = new Date("2026-10-10T09:00:00+05:30");
 export const CONF_END = new Date("2026-10-10T18:00:00+05:30");
 
-function diff(target, now) {
+export function diff(target, now = new Date()) {
   let d = Math.max(0, target - now);
   const days = Math.floor(d / 86400000); d -= days * 86400000;
   const hours = Math.floor(d / 3600000); d -= hours * 3600000;
   const minutes = Math.floor(d / 60000); d -= minutes * 60000;
   const seconds = Math.floor(d / 1000);
-  return { days, hours, minutes, seconds };
+  return { days, hours, minutes, seconds, totalMs: Math.max(0, target - now) };
 }
 
 // phase: 'counting' | 'day1' | 'day2' | 'ended'
-export function useCountdown() {
+export function useCountdown(customTarget = null) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
+  if (customTarget) {
+    return { ...diff(customTarget, now), now };
+  }
+
   let phase = "counting";
   if (now >= CONF_END) phase = "ended";
   else if (now >= DAY2_START) phase = "day2";
   else if (now >= DAY1_START) phase = "day1";
 
-  return { ...diff(DAY1_START, now), phase };
+  return { ...diff(DAY1_START, now), phase, now };
 }
 
 export function usePrefersReducedMotion() {
@@ -41,3 +45,4 @@ export function usePrefersReducedMotion() {
   }, []);
   return reduced;
 }
+
