@@ -229,69 +229,6 @@ function seedDatabase() {
     });
     insertMany(initialCodes);
   }
-
-  const regCount = db.prepare("SELECT COUNT(*) as count FROM registrations").get().count;
-  if (regCount === 0) {
-    const jsonFile = path.join(DATA_DIR, "registrations.json");
-    if (fs.existsSync(jsonFile)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          console.log(`[DB] Migrating ${parsed.length} existing registrations from JSON to SQLite...`);
-          const insertReg = db.prepare(`
-            INSERT INTO registrations (
-              id, reference_id, full_name, email, phone, school, city, experience, awards,
-              is_delegation, delegation_size, heard_from, preference1, preference2, preference3,
-              referral_code, applied_referral, fee, fee_tier, payment_status, payment_screenshot,
-              id_card, accepted_terms, admin_note, allotted_committee, allotted_portfolio, created_at, email_status
-            ) VALUES (
-              @id, @reference_id, @full_name, @email, @phone, @school, @city, @experience, @awards,
-              @is_delegation, @delegation_size, @heard_from, @preference1, @preference2, @preference3,
-              @referral_code, @applied_referral, @fee, @fee_tier, @payment_status, @payment_screenshot,
-              @id_card, @accepted_terms, @admin_note, @allotted_committee, @allotted_portfolio, @created_at, @email_status
-            )
-          `);
-          const insertMany = db.transaction((regs) => {
-            for (const r of regs) {
-              insertReg.run({
-                id: r.id,
-                reference_id: r.reference_id,
-                full_name: r.full_name,
-                email: r.email,
-                phone: r.phone,
-                school: r.school || "",
-                city: r.city || "",
-                experience: r.experience || "",
-                awards: r.awards || "",
-                is_delegation: r.is_delegation ? 1 : 0,
-                delegation_size: r.delegation_size || null,
-                heard_from: r.heard_from || "",
-                preference1: JSON.stringify(r.preference1 || {}),
-                preference2: JSON.stringify(r.preference2 || {}),
-                preference3: JSON.stringify(r.preference3 || {}),
-                referral_code: r.referral_code || "",
-                applied_referral: r.applied_referral || null,
-                fee: r.fee || 1700,
-                fee_tier: r.fee_tier || "Standard",
-                payment_status: r.payment_status || "pending",
-                payment_screenshot: r.payment_screenshot || "",
-                id_card: r.id_card || "",
-                accepted_terms: r.accepted_terms ? 1 : 0,
-                admin_note: r.admin_note || "",
-                allotted_committee: r.allotted_committee || "",
-                allotted_portfolio: r.allotted_portfolio || "",
-                created_at: r.created_at || new Date().toISOString(),
-                email_status: JSON.stringify(r.email_status || { organizer: false, delegate: false }),
-              });
-            }
-          });
-          insertMany(parsed);
-        }
-      } catch (e) {
-        console.error("[DB] Failed to migrate registrations.json:", e);
-      }
-    }
-  }
 }
 
 seedDatabase();
