@@ -195,7 +195,20 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3 text-foreground">{r.full_name}<div className="text-xs text-muted-foreground">{r.email}</div></td>
                       <td className="px-4 py-3 text-muted-foreground">{r.school}</td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">{r.preference1?.committee}{r.preference2?.committee ? ` / ${r.preference2.committee}` : ""}</td>
-                      <td className="px-4 py-3 text-foreground">₹{r.fee}</td>
+                      <td className="px-4 py-3 text-foreground">
+                        <div>₹{r.fee}</div>
+                        {r.applied_referral ? (
+                          <div className="text-[11px] text-[#2FBF71] font-mono mt-0.5 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#2FBF71]" />
+                            {r.applied_referral} (Active)
+                          </div>
+                        ) : r.referral_code ? (
+                          <div className="text-[11px] text-[#E0B84A] font-mono mt-0.5 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#E0B84A]" />
+                            {r.referral_code}
+                          </div>
+                        ) : null}
+                      </td>
                       <td className="px-4 py-3">
                         <span className="mono-label rounded-full px-2.5 py-1 border" style={{ color: STATUS_COLOR[r.payment_status], borderColor: STATUS_COLOR[r.payment_status] }}>
                           {r.payment_status}
@@ -247,7 +260,7 @@ export default function AdminDashboard() {
                 ["Preference 1", `${selected.preference1?.committee || "—"} — ${selected.preference1?.portfolio || "Any"}`],
                 ["Preference 2", `${selected.preference2?.committee || "—"} — ${selected.preference2?.portfolio || "Any"}`],
                 ["Preference 3", `${selected.preference3?.committee || "—"} — ${selected.preference3?.portfolio || "Any"}`],
-                ["Referral", selected.applied_referral || selected.referral_code || "—"],
+                ["Referral Code", selected.applied_referral ? `${selected.applied_referral} (Active · Discount Applied)` : (selected.referral_code ? `${selected.referral_code} (Not Activated / Standard Fee)` : "None")],
                 ["Fee", `₹${selected.fee} (${selected.fee_tier})`],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4 border-b border-border/60 py-1.5">
@@ -487,12 +500,15 @@ function ReferralManager({ codes, setCodes }) {
     } catch (e) { toast.error(e?.response?.data?.detail || "Failed"); }
   };
   const toggle = async (c) => {
+    const nextState = !c.active;
     try {
-      const updated = await adminUpdateCode(c.code, { active: !c.active });
-      setCodes((prev) => prev.map((x) => x.code === c.code ? updated : x));
-    } catch { toast.error("Failed"); }
+      const updated = await adminUpdateCode(c.code, { active: nextState });
+      setCodes((prev) => prev.map((x) => x.code === c.code ? { ...x, active: nextState } : x));
+      toast.success(`Code ${c.code} is now ${nextState ? "Active" : "Not Active"}`);
+    } catch { toast.error("Failed to update status"); }
   };
   const remove = async (c) => {
+    if (!window.confirm(`Delete referral code ${c.code}?`)) return;
     try { await adminDeleteCode(c.code); setCodes((prev) => prev.filter((x) => x.code !== c.code)); toast.success("Deleted"); }
     catch { toast.error("Failed"); }
   };
@@ -514,19 +530,40 @@ function ReferralManager({ codes, setCodes }) {
       <div className="mt-4 rounded-xl border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead><tr className="bg-white/[0.02] text-left">
-            {["Code", "Label", "₹ Off", "Used", "Active", ""].map((h) => <th key={h} className="px-4 py-3 mono-label text-muted-foreground font-normal">{h}</th>)}
+            {["Code", "Label", "₹ Off", "Used", "Status / Toggle", ""].map((h) => <th key={h} className="px-4 py-3 mono-label text-muted-foreground font-normal">{h}</th>)}
           </tr></thead>
           <tbody>
-            {codes.map((c) => (
-              <tr key={c.code} className="border-t border-border">
-                <td className="px-4 py-3 font-mono text-brass">{c.code}</td>
-                <td className="px-4 py-3 text-muted-foreground">{c.label || "—"}</td>
-                <td className="px-4 py-3 text-foreground">₹{c.discount}</td>
-                <td className="px-4 py-3 text-muted-foreground">{c.usage_count || 0}</td>
-                <td className="px-4 py-3"><Switch checked={c.active} onCheckedChange={() => toggle(c)} /></td>
-                <td className="px-4 py-3 text-right"><button onClick={() => remove(c)} className="text-destructive hover:opacity-80"><Trash2 size={16} /></button></td>
-              </tr>
-            ))}
+            {codes.map((c) => {
+              const isActive = Boolean(c.active);
+              return (
+                <tr key={c.code} className="border-t border-border hover:bg-white/[0.01]">
+                  <td className="px-4 py-3 font-mono font-semibold text-brass">{c.code}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.label || "—"}</td>
+                  <td className="px-4 py-3 text-foreground font-medium">₹{c.discount}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.usage_count || 0}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={isActive}
+                        onCheckedChange={() => toggle(c)}
+                        aria-label={`Toggle ${c.code} active status`}
+                      />
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                          isActive
+                            ? "bg-[#2FBF71]/15 text-[#2FBF71] border-[#2FBF71]/30"
+                            : "bg-[#E35D6A]/15 text-[#E35D6A] border-[#E35D6A]/30"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-[#2FBF71]" : "bg-[#E35D6A]"}`} />
+                        {isActive ? "Active" : "Not Active"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right"><button onClick={() => remove(c)} className="text-destructive hover:opacity-80 p-1"><Trash2 size={16} /></button></td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -152,19 +152,34 @@ export default function Register() {
   };
 
   const checkReferral = async () => {
-    const code = f.referral_code.trim();
+    const code = f.referral_code.trim().toUpperCase();
     if (!code) { setRefState(null); setRefResult(null); return; }
-    if (code.toUpperCase() === "PARAMOUNT200") {
-      setRefState("valid"); 
-      setRefResult({ valid: true, label: "Paramount Discount" }); 
-      toast.success("Paramount code applied");
-      return;
-    }
     try {
       const r = await validateReferral(code);
-      if (r.valid) { setRefState("valid"); setRefResult(r); toast.success("Referral code applied"); }
-      else { setRefState("invalid"); setRefResult(null); toast.error("That code isn't valid"); }
-    } catch { setRefState("invalid"); }
+      if (r.valid) {
+        setRefState("valid");
+        setRefResult(r);
+        toast.success(`Referral code applied (₹${r.discount || (code === "PARAMOUNT200" ? 200 : 500)} off)`);
+      } else {
+        if (code === "PARAMOUNT200") {
+          setRefState("valid");
+          setRefResult({ valid: true, label: "Paramount Ambassador Discount", discount: 200 });
+          toast.success("Paramount code applied (₹200 off)");
+        } else {
+          setRefState("invalid");
+          setRefResult(null);
+          toast.error("That code isn't active or recognized");
+        }
+      }
+    } catch {
+      if (code === "PARAMOUNT200") {
+        setRefState("valid");
+        setRefResult({ valid: true, label: "Paramount Ambassador Discount", discount: 200 });
+        toast.success("Paramount code applied (₹200 off)");
+      } else {
+        setRefState("invalid");
+      }
+    }
   };
 
   const doSubmit = async () => {
