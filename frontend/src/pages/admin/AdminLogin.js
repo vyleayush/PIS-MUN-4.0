@@ -44,7 +44,7 @@ export default function AdminLogin() {
         <form data-testid="admin-login-form" onSubmit={submit} className="mt-6 space-y-4">
           <div className="flex flex-col gap-2">
             <Label className="mono-label text-muted-foreground">Email</Label>
-            <Input data-testid="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/[0.02] border-border text-foreground focus-visible:ring-brass h-11" placeholder="you@paramountmun.com" required />
+            <Input data-testid="admin-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="bg-white/[0.02] border-border text-foreground focus-visible:ring-brass h-11" placeholder="you@paramountinternationalmun.26@gmail.com" required />
           </div>
           <div className="flex flex-col gap-2">
             <Label className="mono-label text-muted-foreground">Password</Label>

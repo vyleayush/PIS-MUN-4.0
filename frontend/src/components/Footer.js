@@ -31,7 +31,7 @@ export const Footer = () => (
           <ul className="space-y-3 text-sm">
             <li className="flex items-center gap-2 text-foreground">
               <Mail size={15} className="text-brass" />
-              <a href="mailto:paramountmun.26@gmail.com" className="hover:text-brass transition-colors break-all">paramountmun.26@gmail.com</a>
+              <a href="mailto:paramountinternationalmun.26@gmail.com" className="hover:text-brass transition-colors break-all">paramountinternationalmun.26@gmail.com</a>
             </li>
             <li className="flex items-center gap-2 text-foreground">
               <Instagram size={15} className="text-brass" />

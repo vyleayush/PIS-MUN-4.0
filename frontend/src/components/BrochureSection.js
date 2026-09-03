@@ -46,7 +46,7 @@ const HIGHLIGHTS = [
   {
     icon: ShieldCheck,
     title: "Conference Incharges",
-    desc: "Garima Rana (+91 88829 57182) & Surbhi Sachdeva (+91 97188 19355) · paramountmun.26@gmail.com",
+    desc: "Garima Rana (+91 88829 57182) & Surbhi Sachdeva (+91 97188 19355) · paramountinternationalmun.26@gmail.com",
     badge: "Official Contacts",
   },
 ];
