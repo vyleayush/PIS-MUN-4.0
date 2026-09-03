@@ -272,7 +272,7 @@ export const Hero3DScene = () => {
       ([entry]) => {
         setIsInView(entry.isIntersecting);
       },
-      { rootMargin: "100px" }
+      { rootMargin: "500px" }
     );
 
     observer.observe(containerRef.current);
@@ -309,9 +309,10 @@ export const Hero3DScene = () => {
         camera={{ position: [0, 0.2, 4.5], fov: 45 }}
         dpr={[0.5, 1]} // Dynamic DPR for low-end laptops
         gl={{
-          antialias: false, // Disabled antialiasing for performance
+          antialias: false,
           alpha: true,
-          powerPreference: "low-power",
+          preserveDrawingBuffer: true,
+          powerPreference: "high-performance",
           stencil: false,
           depth: true,
         }}

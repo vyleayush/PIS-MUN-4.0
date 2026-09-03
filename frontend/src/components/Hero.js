@@ -76,9 +76,10 @@ export const Hero = () => {
   const timer = useRef(null);
 
   const { scrollY } = useScroll();
-  const opacity = useTransform(scrollY, [0, 420], [1, 0]);
-  const yShift = useTransform(scrollY, [0, 480], [0, -50]);
-  const scale = useTransform(scrollY, [0, 480], [1, 1.05]);
+  // Keep content fully visible during initial scroll, only gently fade when next section approaches (~800-1100px)
+  const opacity = useTransform(scrollY, [0, 750, 1100], [1, 1, 0]);
+  const yShift = useTransform(scrollY, [0, 1000], [0, -25]);
+  const scale = useTransform(scrollY, [0, 1000], [1, 1.04]);
 
   useEffect(() => {
     HERO_PHOTOS.forEach((src) => {
