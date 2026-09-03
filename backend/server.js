@@ -101,45 +101,189 @@ function organizerEmailHtml(reg) {
   return wrapEmail(inner);
 }
 
+function formatFullName(name) {
+  if (!name) return "Delegate";
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function getCommitteeDetails(slugOrName) {
+  if (!slugOrName) return { name: "To Be Announced", fullName: "" };
+  const clean = slugOrName.toLowerCase().trim();
+  const c = dbHelpers.getCommitteeBySlug ? dbHelpers.getCommitteeBySlug(clean) : null;
+  if (c) {
+    return { name: c.name || slugOrName.toUpperCase(), fullName: c.full_name || "" };
+  }
+  const map = {
+    unga: { name: "UNGA", fullName: "United Nations General Assembly" },
+    aippm: { name: "AIPPM", fullName: "All India Political Parties Meet" },
+    who: { name: "WHO", fullName: "World Health Organization" },
+    uncsw: { name: "UNCSW", fullName: "UN Commission on the Status of Women" },
+    unhrc: { name: "UNHRC", fullName: "United Nations Human Rights Council" },
+  };
+  if (map[clean]) return map[clean];
+  return { name: slugOrName.toUpperCase(), fullName: "" };
+}
+
 function delegateEmailHtml(reg) {
-  const firstName = (reg.full_name || "").split(" ")[0];
+  const formattedName = formatFullName(reg.full_name);
   const inner = `
-    <h2 style='margin:0 0 8px;color:#F2F0EA;font-size:20px;'>You're on the list.</h2>
-    <p style='color:#C9C6BC;margin:0 0 18px;'>Thanks for registering for Paramount International MUN, ${firstName}. Your submission has been received and is now with our organizing committee.</p>
-    <div style='background:#121A2F;border:1px solid #1E2A44;border-radius:12px;padding:16px 18px;margin:0 0 18px;'>
-      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;'>Your Reference ID</div>
-      <div style='font-size:22px;color:#F2F0EA;letter-spacing:1px;margin-top:4px;font-family:monospace;'>${reg.reference_id}</div>
+    <h2 style='margin:0 0 8px;color:#F2F0EA;font-size:22px;font-family:"Georgia","Times New Roman",serif;'>Registration Received</h2>
+    <p style='color:#C9C6BC;margin:0 0 18px;font-size:14px;line-height:1.7;'>Dear <strong style='color:#FFFFFF;'>${formattedName}</strong>,</p>
+    <p style='color:#C9C6BC;margin:0 0 18px;font-size:14px;line-height:1.7;'>Thank you for registering for <strong>Paramount International Model United Nations 2026</strong>. Your submission has been received and is currently under review by our Secretariat.</p>
+    <div style='background:linear-gradient(145deg,#0B101E,#131A2E);border:1.5px solid #C7A35A;border-radius:12px;padding:18px 20px;margin:0 0 18px;'>
+      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-weight:700;'>Your Delegate Reference ID</div>
+      <div style='font-size:22px;color:#E7C978;letter-spacing:2px;margin-top:4px;font-family:"Courier New",monospace;font-weight:700;'>${reg.reference_id}</div>
     </div>
-    <p style='color:#C9C6BC;margin:0 0 6px;'><strong style='color:#F2F0EA;'>Delegate fee:</strong> ₹${reg.fee}</p>
-    <p style='color:#C9C6BC;margin:0 0 18px;'>Your fee includes the full delegate kit — pad file, ID card, pen, notepad, and meals across both conference days.</p>
+    <p style='color:#C9C6BC;margin:0 0 6px;font-size:14px;'><strong style='color:#F2F0EA;'>Delegate fee:</strong> ₹${reg.fee || BASE_FEE}</p>
+    <p style='color:#C9C6BC;margin:0 0 18px;font-size:13.5px;line-height:1.6;'>Your fee includes the complete delegate kit — credentials, conference folder, notepad, pen, and gourmet meals across both conference days.</p>
     <div style='background:#1A1710;border:1px solid #3A2F18;border-radius:12px;padding:14px 16px;'>
-      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;'>Please note</div>
-      <p style='color:#C9C6BC;margin:6px 0 0;'>All registrations are <strong style='color:#F2F0EA;'>non-refundable</strong>.</p>
+      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-weight:700;'>Next Steps</div>
+      <p style='color:#C9C6BC;margin:6px 0 0;font-size:13px;line-height:1.6;'>Once payment is verified, your registration will be officially approved and your committee allotment will be communicated via email.</p>
     </div>
-    <p style='color:#9A98A0;margin:18px 0 0;font-size:12px;'>See you on 9–10 October 2026 at Paramount International School.</p>`;
+    <p style='color:#9A98A0;margin:18px 0 0;font-size:12.5px;'>Conference Dates: <strong>9–10 October 2026</strong> · Paramount International School.</p>`;
+  return wrapEmail(inner);
+}
+
+function verificationApprovedEmailHtml(reg) {
+  const formattedName = formatFullName(reg.full_name);
+  const p1 = reg.preference1 || {};
+
+  const inner = `
+    <div style='margin-bottom:20px;'>
+      <div style='font-size:11px;letter-spacing:2.5px;color:#2FBF71;text-transform:uppercase;font-weight:700;margin-bottom:6px;'>Official Verification Confirmed</div>
+      <h2 style='margin:0 0 10px;color:#FFFFFF;font-size:24px;font-family:"Georgia","Times New Roman",serif;font-weight:700;'>Dear ${formattedName},</h2>
+      <p style='color:#C9C6BC;margin:0 0 16px;font-size:14px;line-height:1.7;'>
+        We are pleased to inform you that your delegate registration and payment for <strong>Paramount International Model United Nations 2026</strong> have been <span style='color:#2FBF71;font-weight:700;'>officially approved and verified</span>!
+      </p>
+    </div>
+
+    <!-- Confirmation Card -->
+    <div style='background:linear-gradient(145deg,#0B101E,#131A2E);border:1.5px solid #2FBF71;border-radius:14px;padding:22px 24px;margin:0 0 24px;box-shadow:0 10px 30px rgba(0,0,0,0.5);'>
+      <table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse;'>
+        <tr>
+          <td style='padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.08);'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Delegate Name</div>
+            <div style='font-size:19px;color:#FFFFFF;font-family:"Georgia","Times New Roman",serif;font-weight:700;margin-top:4px;'>
+              ${formattedName}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08);'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Payment &amp; Registration Status</div>
+            <div style='font-size:16px;color:#2FBF71;font-weight:700;margin-top:4px;'>
+              ✓ Verified &amp; Approved (₹${reg.fee || BASE_FEE})
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.08);'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Primary Committee Preference</div>
+            <div style='font-size:16px;color:#FBE7B6;font-family:"Georgia",serif;font-weight:600;margin-top:4px;'>
+              ${p1.committee ? p1.committee.toUpperCase() : "Under Review"}${p1.portfolio ? ` — ${p1.portfolio}` : ""}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding-top:12px;'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Official Delegate ID</div>
+            <div style='font-size:17px;color:#E7C978;font-family:"Courier New",monospace;font-weight:700;margin-top:4px;letter-spacing:2px;'>
+              ${reg.reference_id}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p style='color:#C9C6BC;margin:0 0 14px;font-size:13.5px;line-height:1.7;'>
+      Our Executive Board is currently finalizing portfolio allotments. You will receive your official committee and country assignment in your allotment email shortly.
+    </p>
+
+    <p style='color:#9A98A0;margin:20px 0 0;font-size:12.5px;line-height:1.6;'>
+      Warm regards,<br>
+      <strong style='color:#F2F0EA;'>Secretariat &amp; Executive Board</strong><br>
+      Paramount International Model United Nations
+    </p>`;
   return wrapEmail(inner);
 }
 
 function allotmentEmailHtml(reg) {
-  const firstName = (reg.full_name || "").split(" ")[0];
+  const formattedName = formatFullName(reg.full_name);
+  const comm = getCommitteeDetails(reg.allotted_committee);
+  const portfolioName = reg.allotted_portfolio || "Allotted upon check-in";
+
   const inner = `
-    <h2 style='margin:0 0 14px;color:#F2F0EA;font-size:20px;'>Hey ${firstName}!</h2>
-    <p style='color:#C9C6BC;margin:0 0 18px;'>It’s happening! You’re officially part of the chaos, diplomacy, and absolute cinema that is Paramount iSchool MUN 2026, and we couldn’t be more pumped to have you on board.</p>
-    <p style='color:#C9C6BC;margin:0 0 18px;'>And finally, the most awaited part—your allotment. Because, let’s be honest, this is what you scrolled down for:</p>
-    <div style='background:#121A2F;border:1px solid #1E2A44;border-radius:12px;padding:16px 18px;margin:0 0 18px;'>
-      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;'>Committee</div>
-      <div style='font-size:16px;color:#F2F0EA;letter-spacing:1px;margin-top:4px;'>${reg.allotted_committee}</div>
-      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;margin-top:12px;'>Portfolio</div>
-      <div style='font-size:16px;color:#F2F0EA;letter-spacing:1px;margin-top:4px;'>${reg.allotted_portfolio}</div>
-      <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;margin-top:12px;'>Delegate ID</div>
-      <div style='font-size:16px;color:#F2F0EA;letter-spacing:1px;margin-top:4px;font-family:monospace;'>${reg.reference_id}</div>
+    <div style='margin-bottom:20px;'>
+      <div style='font-size:11px;letter-spacing:2.5px;color:#E7C978;text-transform:uppercase;font-weight:700;margin-bottom:6px;'>Official Delegation Allotment</div>
+      <h2 style='margin:0 0 10px;color:#FFFFFF;font-size:24px;font-family:"Georgia","Times New Roman",serif;font-weight:700;'>Dear ${formattedName},</h2>
+      <p style='color:#C9C6BC;margin:0 0 16px;font-size:14px;line-height:1.7;'>
+        Your registration for <strong>Paramount International Model United Nations 2026</strong> has been officially approved! We are proud to confirm your committee and portfolio allotment below:
+      </p>
     </div>
-    <p style='color:#C9C6BC;margin:0 0 14px;font-style:italic;'>(Yes, it’s giving major "main character" energy.)</p>
-    <p style='color:#C9C6BC;margin:0 0 14px;'>We went through all your preferences, past experience, and what was available—and just like that, this combination felt like the perfect match.</p>
-    <p style='color:#C9C6BC;margin:0 0 14px;'>Now here’s the tip: your country or portfolio is your whole personality for the conference. So make sure you know everything about it—their stance, their vibe, their diplomatic drama, every bit of it. This is your time to slay in committee, and we know you will.</p>
-    <p style='color:#C9C6BC;margin:0 0 14px;'>Got questions, doubts, or just wanna rant about how excited you are? Slide into our inbox at <a href="mailto:${ORGANIZER_EMAIL}" style="color:#C7A35A;text-decoration:none;">${ORGANIZER_EMAIL}</a>—we got you.</p>
-    <p style='color:#C9C6BC;margin:0 0 18px;'>We’re genuinely looking forward to hosting you this 9th and 10th October, 2026. More than just a competition, it’s going to be an experience you’ll remember. Welcome to the Paramount iSchool MUN family. We seriously can’t wait to see you show up, speak up, and absolutely own that committee room.</p>
-    <p style='color:#9A98A0;margin:18px 0 0;font-size:12px;'>Stay Iconic,<br><br>Team Delegate Affairs<br>Paramount iSchool MUN</p>`;
+
+    <!-- Official Allotment Card with Premium Typography -->
+    <div style='background:linear-gradient(145deg,#0B101E 0%,#131A2E 100%);border:1.5px solid #C7A35A;border-radius:14px;padding:24px 26px;margin:0 0 24px;box-shadow:0 12px 32px rgba(0,0,0,0.55);'>
+      <table width='100%' cellpadding='0' cellspacing='0' style='border-collapse:collapse;'>
+        <tr>
+          <td style='padding-bottom:14px;border-bottom:1px solid rgba(199,163,90,0.25);'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Delegate Name</div>
+            <div style='font-size:20px;color:#FFFFFF;font-family:"Georgia","Times New Roman",serif;font-weight:700;margin-top:4px;'>
+              ${formattedName}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding:14px 0;border-bottom:1px solid rgba(199,163,90,0.25);'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Assigned Committee</div>
+            <div style='font-size:25px;color:#FBE7B6;font-family:"Georgia","Times New Roman",serif;font-weight:700;margin-top:5px;letter-spacing:1px;'>
+              ${comm.name}
+            </div>
+            ${comm.fullName ? `<div style='font-size:13px;color:#D8D5CC;font-family:"Georgia",serif;font-style:italic;margin-top:3px;'>${comm.fullName}</div>` : ""}
+          </td>
+        </tr>
+        <tr>
+          <td style='padding:14px 0;border-bottom:1px solid rgba(199,163,90,0.25);'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Allotted Country / Portfolio</div>
+            <div style='font-size:22px;color:#FFFFFF;font-family:"Georgia","Times New Roman",serif;font-weight:700;margin-top:5px;'>
+              ${portfolioName}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style='padding-top:14px;'>
+            <div style='font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-weight:700;'>Official Delegate ID</div>
+            <div style='font-size:17px;color:#E7C978;font-family:"Courier New",monospace;font-weight:700;margin-top:4px;letter-spacing:2px;'>
+              ${reg.reference_id}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div style='background:#0D1424;border-left:3px solid #C7A35A;padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:20px;'>
+      <div style='font-size:11px;letter-spacing:1.5px;color:#C7A35A;text-transform:uppercase;font-weight:700;'>Preparation Note</div>
+      <p style='color:#C9C6BC;margin:4px 0 0;font-size:13px;line-height:1.6;'>
+        Please research your allotted committee agenda and country policy thoroughly. Official background guides and rules of procedure will be available on the conference portal.
+      </p>
+    </div>
+
+    <p style='color:#C9C6BC;margin:0 0 14px;font-size:13.5px;line-height:1.7;'>
+      If you have questions regarding your allotment or preparation, feel free to reach out to our Organizing Committee at <a href="mailto:${ORGANIZER_EMAIL}" style="color:#C7A35A;text-decoration:none;font-weight:600;">${ORGANIZER_EMAIL}</a>.
+    </p>
+
+    <p style='color:#C9C6BC;margin:0 0 18px;font-size:13.5px;line-height:1.7;'>
+      We look forward to hosting you on <strong>9th &amp; 10th October 2026</strong> at Paramount International School.
+    </p>
+
+    <p style='color:#9A98A0;margin:20px 0 0;font-size:12.5px;line-height:1.6;'>
+      Warm regards,<br>
+      <strong style='color:#F2F0EA;'>Secretariat &amp; Executive Board</strong><br>
+      Paramount International Model United Nations
+    </p>`;
   return wrapEmail(inner);
 }
 
@@ -445,6 +589,24 @@ const server = http.createServer((req, res) => {
     return getBody((payload) => {
       const updated = dbHelpers.updateRegistration(id, payload);
       if (!updated) return sendJson(404, { detail: "Registration not found" });
+
+      // Automatically send email to delegate when registration is approved/verified
+      if (payload.payment_status === "verified") {
+        if (updated.allotted_committee && updated.allotted_portfolio) {
+          const subject = "Your Paramount International MUN Allotment is Here! 🏛️✨";
+          const html = allotmentEmailHtml(updated);
+          sendGmailEmail(updated.email, subject, html, ORGANIZER_EMAIL).then((res) => {
+            if (!res.ok) console.error("[EMAIL ERROR] Allotment email failed:", res.error);
+          });
+        } else {
+          const subject = `Registration Approved & Verified — Paramount International MUN (${updated.reference_id}) ✅`;
+          const html = verificationApprovedEmailHtml(updated);
+          sendGmailEmail(updated.email, subject, html, ORGANIZER_EMAIL).then((res) => {
+            if (!res.ok) console.error("[EMAIL ERROR] Verification approved email failed:", res.error);
+          });
+        }
+      }
+
       return sendJson(200, { ok: true, registration: updated, ...updated });
     });
   }
@@ -481,8 +643,8 @@ const server = http.createServer((req, res) => {
       // Update portfolio status in committee
       dbHelpers.updatePortfolio(committeeSlug, portfolioName, "allotted", reg.full_name);
 
-      // Send allotment email asynchronously
-      const subject = "It’s giving diplomacy. Your Paramount iSchool MUN allotment is here! 🏛️✨";
+      // Send allotment email asynchronously with upgraded formatting
+      const subject = "Your Paramount International MUN Allotment is Here! 🏛️✨";
       const html = allotmentEmailHtml(updatedReg);
       sendGmailEmail(updatedReg.email, subject, html, ORGANIZER_EMAIL).then((res) => {
         if (!res.ok) console.error("[EMAIL ERROR] Allotment email failed:", res.error);

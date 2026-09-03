@@ -64,8 +64,11 @@ export default function AdminDashboard() {
       const updated = await adminUpdateRegistration(reg.id, { payment_status: status });
       setRegs((prev) => prev.map((x) => (x.id === reg.id ? updated : x)));
       if (selected?.id === reg.id) setSelected(updated);
-      refreshStats();
-      toast.success(`Marked ${status}`);
+      if (status === "verified") {
+        toast.success(`Marked verified & confirmation email sent to ${reg.email}!`);
+      } else {
+        toast.success(`Marked ${status}`);
+      }
     } catch { toast.error("Update failed"); }
   };
 
@@ -86,7 +89,7 @@ export default function AdminDashboard() {
       const updatedCommittees = await adminCommittees();
       setCommittees(updatedCommittees);
       refreshStats();
-      toast.success(`Allotted to ${committeeSlug} - ${portfolioName}`);
+      toast.success(`Allotted to ${committeeSlug.toUpperCase()} — ${portfolioName} & email sent to ${reg.email}!`);
     } catch (e) { toast.error("Allotment failed"); }
   };
 
