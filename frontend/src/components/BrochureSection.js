@@ -40,7 +40,7 @@ const HIGHLIGHTS = [
   {
     icon: Calendar,
     title: "Participation & Fee",
-    desc: "₹2,000 for Non-Paramount students / ₹1,500 for Paramount students. 9th & 10th October 2026.",
+    desc: "₹1,700 for Non-Paramount students / ₹1,500 for Paramount students. 9th & 10th October 2026.",
     badge: "9–10 Oct 2026",
   },
   {

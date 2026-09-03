@@ -212,7 +212,7 @@ export default function Brochure() {
             </div>
             <div>
               <h4 className="text-sm font-semibold text-foreground">9 & 10 Oct 2026</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Fee: ₹2,000 / ₹1,500 (Paramount)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Fee: ₹1,700 / ₹1,500 (Paramount)</p>
               <span className="text-[11px] text-muted-foreground mt-1 inline-block">Sector 23, Dwarka</span>
             </div>
           </div>
