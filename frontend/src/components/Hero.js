@@ -76,6 +76,9 @@ export const Hero = () => {
   const timer = useRef(null);
 
   const { scrollY } = useScroll();
+  const opacity = useTransform(scrollY, [0, 420], [1, 0]);
+  const yShift = useTransform(scrollY, [0, 480], [0, -50]);
+  const scale = useTransform(scrollY, [0, 480], [1, 1.05]);
 
   useEffect(() => {
     HERO_PHOTOS.forEach((src) => {
@@ -95,7 +98,7 @@ export const Hero = () => {
   return (
     <section className="relative min-h-screen w-full overflow-hidden grain flex items-center justify-center">
       {/* Background Photo Parallax Layer */}
-      <motion.div className="absolute inset-0 bg-[#070A0F]">
+      <motion.div className="absolute inset-0 bg-[#070A0F]" style={reduced ? {} : { scale }}>
         <AnimatePresence mode="sync">
           <motion.img
             key={index}
@@ -123,9 +126,14 @@ export const Hero = () => {
       />
 
       <Wires />
+      {!reduced && <Sprinkles />}
+
+      {/* 3D Kinetic Model (Always running at high speed) */}
+      {!reduced && <Hero3DScene />}
 
       {/* Content Container (transitions smoothly on scroll) */}
       <motion.div
+        style={reduced ? {} : { opacity, y: yShift }}
         className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen flex flex-col items-center justify-center text-center pt-28 pb-20"
       >
         <motion.div
