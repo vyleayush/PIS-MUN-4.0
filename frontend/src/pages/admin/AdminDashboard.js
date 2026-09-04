@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X } from "lucide-react";
+import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download } from "lucide-react";
 import {
   adminStats, adminRegistrations, adminUpdateRegistration, adminDeleteRegistration, adminAllotRegistration,
   adminCommittees, adminUpdateCommittee, adminUpdatePortfolio,
@@ -166,18 +166,29 @@ export default function AdminDashboard() {
         {/* Registrations */}
         {!loading && tab === "registrations" && (
           <div className="mt-6">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
               <div className="relative max-w-sm w-full">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input data-testid="admin-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email, ref ID…" className="bg-white/[0.02] border-border text-foreground focus-visible:ring-brass h-10 pl-9 w-full" />
               </div>
-              <a 
-                href={`${API}/admin/allotments.csv`} 
-                download
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-brass px-4 text-sm font-medium text-[#070A0F] hover:bg-brass-hover transition-colors whitespace-nowrap"
-              >
-                <ClipboardList size={16} /> Download Allotments (CSV)
-              </a>
+              <div className="flex items-center gap-2 flex-wrap">
+                <a 
+                  href={`${API}/admin/registrations.csv`} 
+                  download="registrations.csv"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-white/[0.05] border border-border px-3.5 text-sm font-medium text-foreground hover:bg-white/[0.09] hover:border-brass/40 transition-colors whitespace-nowrap"
+                  title="Export complete list of all registered delegates"
+                >
+                  <Download size={15} className="text-brass" /> Export Full List (CSV)
+                </a>
+                <a 
+                  href={`${API}/admin/allotments.csv`} 
+                  download="allotments.csv"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg bg-brass px-3.5 text-sm font-medium text-[#070A0F] hover:bg-brass-hover transition-colors whitespace-nowrap"
+                  title="Export confirmed allotments only"
+                >
+                  <ClipboardList size={15} /> Export Allotments (CSV)
+                </a>
+              </div>
             </div>
             <div className="rounded-xl border border-border overflow-hidden overflow-x-auto">
               <table data-testid="admin-registrations-table" className="w-full text-sm min-w-[720px]">

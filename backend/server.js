@@ -658,8 +658,19 @@ const server = http.createServer((req, res) => {
   if (pathname === "/api/admin/allotments.csv" && req.method === "GET") {
     const csvData = dbHelpers.generateAllotmentsCsv();
     res.writeHead(200, {
-      "Content-Type": "text/csv",
+      "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": 'attachment; filename="allotments.csv"',
+    });
+    res.end(csvData);
+    return;
+  }
+
+  // GET /api/admin/registrations.csv
+  if (pathname === "/api/admin/registrations.csv" && req.method === "GET") {
+    const csvData = dbHelpers.generateRegistrationsCsv();
+    res.writeHead(200, {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": 'attachment; filename="registrations.csv"',
     });
     res.end(csvData);
     return;

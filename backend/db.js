@@ -534,7 +534,7 @@ const dbHelpers = {
 
   generateAllotmentsCsv() {
     const regs = this.getRegistrations();
-    const headers = ["Reference ID", "Name", "Email", "Phone", "School", "Committee", "Portfolio"];
+    const headers = ["Reference ID", "Student Name", "Phone", "Email", "School", "Committee", "Country / Political Leader (Portfolio)"];
     const lines = [headers.join(",")];
 
     regs.forEach((r) => {
@@ -542,14 +542,74 @@ const dbHelpers = {
         const row = [
           r.reference_id,
           `"${(r.full_name || "").replace(/"/g, '""')}"`,
-          `"${(r.email || "").replace(/"/g, '""')}"`,
           `"${(r.phone || "").replace(/"/g, '""')}"`,
+          `"${(r.email || "").replace(/"/g, '""')}"`,
           `"${(r.school || "").replace(/"/g, '""')}"`,
           `"${(r.allotted_committee || "").replace(/"/g, '""')}"`,
           `"${(r.allotted_portfolio || "").replace(/"/g, '""')}"`,
         ];
         lines.push(row.join(","));
       }
+    });
+
+    return lines.join("\n");
+  },
+
+  generateRegistrationsCsv() {
+    const regs = this.getRegistrations();
+    const headers = [
+      "Registration ID",
+      "Student Name",
+      "Phone Number",
+      "Email",
+      "School / Institution",
+      "City",
+      "Allotted Committee",
+      "Allotted Portfolio (Country / Leader)",
+      "Pref 1 Committee",
+      "Pref 1 Portfolio",
+      "Pref 2 Committee",
+      "Pref 2 Portfolio",
+      "Pref 3 Committee",
+      "Pref 3 Portfolio",
+      "Payment Status",
+      "Fee (INR)",
+      "Referral Code",
+      "Experience",
+      "Delegation Size",
+      "Registered At",
+      "Admin Note"
+    ];
+    const lines = [headers.join(",")];
+
+    regs.forEach((r) => {
+      const p1 = r.preference1 || {};
+      const p2 = r.preference2 || {};
+      const p3 = r.preference3 || {};
+      const row = [
+        r.reference_id || "",
+        `"${(r.full_name || "").replace(/"/g, '""')}"`,
+        `"${(r.phone || "").replace(/"/g, '""')}"`,
+        `"${(r.email || "").replace(/"/g, '""')}"`,
+        `"${(r.school || "").replace(/"/g, '""')}"`,
+        `"${(r.city || "").replace(/"/g, '""')}"`,
+        `"${(r.allotted_committee || "").replace(/"/g, '""')}"`,
+        `"${(r.allotted_portfolio || "").replace(/"/g, '""')}"`,
+        `"${(p1.committee || "").replace(/"/g, '""')}"`,
+        `"${(p1.portfolio || "").replace(/"/g, '""')}"`,
+        `"${(p2.committee || "").replace(/"/g, '""')}"`,
+        `"${(p2.portfolio || "").replace(/"/g, '""')}"`,
+        `"${(p3.committee || "").replace(/"/g, '""')}"`,
+        `"${(p3.portfolio || "").replace(/"/g, '""')}"`,
+        `"${(r.payment_status || "pending").replace(/"/g, '""')}"`,
+        r.fee || 1700,
+        `"${(r.applied_referral || r.referral_code || "").replace(/"/g, '""')}"`,
+        `"${(r.experience || "").replace(/"/g, '""')}"`,
+        r.is_delegation ? (r.delegation_size || "Delegation") : "Individual",
+        `"${(r.created_at || "").replace(/"/g, '""')}"`,
+        `"${(r.admin_note || "").replace(/"/g, '""')}"`
+      ];
+      lines.push(row.join(","));
     });
 
     return lines.join("\n");

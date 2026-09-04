@@ -50,8 +50,27 @@ function getSheet_() {
   var sheet = ss.getSheetByName(RESPONSES_SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(RESPONSES_SHEET_NAME);
-    sheet.appendRow(['Timestamp', 'ResponseID', 'Token', 'Status', 'Committee',
-      'Country/Portfolio', 'EntryId', 'Details (JSON)', 'ID Card Link', 'Payment Screenshot Link']);
+    sheet.appendRow([
+      'Timestamp',
+      'ResponseID',
+      'Student Name',
+      'Phone Number',
+      'Email',
+      'School / College',
+      'City',
+      'Committee',
+      'Country/Portfolio',
+      'Status',
+      'Fee Tier',
+      'Referral Code',
+      'Experience',
+      'Delegation Size',
+      'ID Card Link',
+      'Payment Screenshot Link',
+      'EntryId',
+      'Token',
+      'Details (JSON)'
+    ]);
     sheet.setFrozenRows(1);
   }
   return sheet;
@@ -86,7 +105,7 @@ function doPost(e) {
     var entryId   = params['EntryId'] || '';
     var committee = params['Committee'] || '';
     var country   = params['Country/Portfolio'] || '';
-    var replyTo   = params['ReplyTo'] || '';
+    var replyTo   = params['ReplyTo'] || params['Email'] || params['email'] || '';
 
     if (!entryId || !committee || !country) {
       return jsonOut_({ ok: false, error: 'Missing committee/country selection.' });
@@ -103,9 +122,17 @@ function doPost(e) {
     var idCardLink  = saveUploadedFile_(params['Student ID Card'], responseId, 'ID Card');
     var paymentLink = saveUploadedFile_(params['Payment Screenshot'], responseId, 'Payment Screenshot');
 
-    // Every other (non-file) field the form sent, in a readable list —
-    // this way the email always reflects the form's real fields, even
-    // if the form's questions change later.
+    var studentName = params['Full Name'] || params['full_name'] || params['Name'] || params['Student Name'] || '';
+    var phone       = params['Phone'] || params['phone'] || params['Phone Number'] || '';
+    var email       = params['Email'] || params['email'] || '';
+    var school      = params['School / College'] || params['school'] || params['School'] || '';
+    var city        = params['City'] || params['city'] || '';
+    var feeTier     = params['Fee'] || params['fee_tier'] || params['Fee Tier'] || 'Standard';
+    var referral    = params['Referral Code'] || params['referral_code'] || '';
+    var experience  = params['Experience'] || params['experience'] || '';
+    var delegation  = params['Delegation Size'] || params['delegation_size'] || (params['is_delegation'] ? 'Yes' : 'No');
+
+    // Every other field in readable list for email notification
     var detailLines = [];
     var detailObj = {};
     Object.keys(params).forEach(function (key) {
@@ -115,8 +142,27 @@ function doPost(e) {
       detailLines.push(key + ': ' + val);
     });
 
-    sheet.appendRow([new Date(), responseId, token, STATUS_PENDING, committee, country,
-      entryId, JSON.stringify(detailObj), idCardLink, paymentLink]);
+    sheet.appendRow([
+      new Date(),
+      responseId,
+      studentName,
+      phone,
+      email,
+      school,
+      city,
+      committee,
+      country,
+      STATUS_PENDING,
+      feeTier,
+      referral,
+      experience,
+      delegation,
+      idCardLink,
+      paymentLink,
+      entryId,
+      token,
+      JSON.stringify(detailObj)
+    ]);
 
     sendReviewEmail_(responseId, token, committee, country, detailLines, idCardLink, paymentLink, replyTo);
 

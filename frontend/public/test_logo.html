@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Logo Test</title>
+  <style>
+    body {
+      background: #070A0F;
+      color: #fff;
+      font-family: sans-serif;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <h2>Logo Test Comparison</h2>
+
+  <div class="row">
+    <div>
+      <div>Current (school-logo.png with filter)</div>
+      <div class="badge" style="border: 1px solid rgba(199,163,90,0.25); background: rgba(0,0,0,0.5);">
+        <img src="/school-logo.png" style="width: 100%; height: 100%; object-fit: contain; mix-blend-mode: screen; filter: invert(1) sepia(1) saturate(5) hue-rotate(200deg);" />
+      </div>
+    </div>
+
+    <div>
+      <div>Option 1: logo.png (original raw, no filter, dark bg)</div>
+      <div class="badge" style="border: 1px solid rgba(199,163,90,0.4); background: rgba(0,0,0,0.6);">
+        <img src="/logo.png" style="width: 100%; height: 100%; object-fit: contain;" />
+      </div>
+    </div>
+
+    <div>
+      <div>Option 2: logo.png with white/cream circular badge</div>
+      <div class="badge" style="border: 1.5px solid rgba(199,163,90,0.6); background: #ffffff; padding: 2px; box-shadow: 0 0 12px rgba(199,163,90,0.3);">
+        <img src="/logo.png" style="width: 100%; height: 100%; object-fit: contain;" />
+      </div>
+    </div>
+
+    <div>
+      <div>Option 3: logo.png with light gold badge</div>
+      <div class="badge" style="border: 1.5px solid rgba(199,163,90,0.8); background: linear-gradient(135deg, #FFFDF5, #F5E8C7); padding: 2px; box-shadow: 0 0 12px rgba(199,163,90,0.3);">
+        <img src="/logo.png" style="width: 100%; height: 100%; object-fit: contain;" />
+      </div>
+    </div>
+
+    <div>
+      <div>Option 4: logo.png inverted/brass tint on dark</div>
+      <div class="badge" style="border: 1px solid rgba(199,163,90,0.4); background: rgba(0,0,0,0.7); padding: 2px;">
+        <img src="/logo.png" style="width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1);" />
+      </div>
+    </div>
+
+    <div>
+      <div>Option 5: logo.png gold tint on dark</div>
+      <div class="badge" style="border: 1px solid rgba(199,163,90,0.4); background: rgba(0,0,0,0.7); padding: 2px;">
+        <img src="/logo.png" style="width: 100%; height: 100%; object-fit: contain; filter: invert(73%) sepia(27%) saturate(737%) hue-rotate(6deg) brightness(92%) contrast(88%);" />
+      </div>
+    </div>
+  </div>
+</body>
+</html>
