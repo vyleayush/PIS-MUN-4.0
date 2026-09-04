@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download } from "lucide-react";
+import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download, RefreshCw } from "lucide-react";
 import {
   adminStats, adminRegistrations, adminUpdateRegistration, adminDeleteRegistration, adminAllotRegistration,
   adminCommittees, adminUpdateCommittee, adminUpdatePortfolio,
@@ -36,72 +36,124 @@ export default function AdminDashboard() {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const autoRefreshRef = useRef(null);
+  const selectedRef = useRef(selected);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
 
-  const refreshStats = () => adminStats().then(setStats).catch(() => {});
-  const loadAll = async () => {
+  const refreshStats = useCallback(() => adminStats().then(setStats).catch(() => {}), []);
+
+  const loadAll = useCallback(async (isManual = false) => {
+    if (isManual) setRefreshing(true);
     try {
-      const [s, r, c, k] = await Promise.all([adminStats(), adminRegistrations(), adminCommittees(), adminReferralCodes()]);
-      setStats(s); setRegs(r); setCommittees(c); setCodes(k);
+      const [s, r, c, k] = await Promise.all([
+        adminStats(),
+        adminRegistrations(),
+        adminCommittees(),
+        adminReferralCodes(),
+      ]);
+      setStats(s);
+      setRegs(r);
+      setCommittees(c);
+      setCodes(k);
+      // Update the open drawer with fresh data if there is one
+      const curr = selectedRef.current;
+      if (curr) {
+        const fresh = r.find((x) => x.id === curr.id);
+        if (fresh) setSelected(fresh);
+      }
+      if (isManual) toast.success("Data refreshed");
     } catch (e) {
       toast.error("Session expired. Please sign in again.");
       localStorage.removeItem("pmun_admin_token");
       navigate("/admin/login");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     if (!localStorage.getItem("pmun_admin_token")) { navigate("/admin/login"); return; }
     loadAll();
+    // Auto-refresh every 60 seconds so admins always see fresh data
+    autoRefreshRef.current = setInterval(() => loadAll(false), 60000);
+    return () => { if (autoRefreshRef.current) clearInterval(autoRefreshRef.current); };
     // eslint-disable-next-line
   }, []);
 
   const logout = () => { localStorage.removeItem("pmun_admin_token"); navigate("/admin/login"); };
 
   const setRegStatus = async (reg, status) => {
-    try {
-      const updated = await adminUpdateRegistration(reg.id, { payment_status: status });
-      setRegs((prev) => prev.map((x) => (x.id === reg.id ? updated : x)));
-      if (selected?.id === reg.id) setSelected(updated);
-      if (status === "verified") {
-        toast.success(`Marked verified & confirmation email sent to ${reg.email}!`);
-      } else {
-        toast.success(`Marked ${status}`);
-      }
-    } catch { toast.error("Update failed"); }
+    // The API returns { ok, registration, ...spread } — extract the clean registration object
+    const response = await adminUpdateRegistration(reg.id, { payment_status: status });
+    const updated = response.registration ?? response;
+    setRegs((prev) => prev.map((x) => (x.id === reg.id ? updated : x)));
+    if (selected?.id === reg.id) setSelected(updated);
+    refreshStats();
+    if (status === "verified") {
+      toast.success(`Marked verified & confirmation email sent to ${reg.email}!`);
+    } else {
+      toast.success(`Marked ${status}`);
+    }
   };
 
   const saveNote = async (reg, note) => {
+    const response = await adminUpdateRegistration(reg.id, { admin_note: note });
+    const updated = response.registration ?? response;
+    setRegs((prev) => prev.map((x) => x.id === reg.id ? updated : x));
+    if (selected?.id === reg.id) setSelected(updated);
+    toast.success("Note saved");
+  };
+
+  // CSV download with auth token + cache-busting (avoids browser caching stale data)
+  const downloadCsv = async (endpoint, filename) => {
     try {
-      await adminUpdateRegistration(reg.id, { admin_note: note });
-      setRegs((prev) => prev.map((x) => x.id === reg.id ? { ...x, admin_note: note } : x));
-      toast.success("Note saved");
-    } catch { toast.error("Failed to save note"); }
+      const token = localStorage.getItem("pmun_admin_token");
+      const res = await fetch(`${API}${endpoint}?t=${Date.now()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Download failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Failed to download CSV");
+    }
   };
 
   const allotPortfolio = async (reg, committeeSlug, portfolioName) => {
     try {
-      const updated = await adminAllotRegistration(reg.id, { committeeSlug, portfolioName });
-      setRegs((prev) => prev.map((x) => (x.id === reg.id ? updated.registration : x)));
-      if (selected?.id === reg.id) setSelected(updated.registration);
+      const resp = await adminAllotRegistration(reg.id, { committeeSlug, portfolioName });
+      const updatedReg = resp.registration ?? resp;
+      setRegs((prev) => prev.map((x) => (x.id === reg.id ? updatedReg : x)));
+      if (selected?.id === reg.id) setSelected(updatedReg);
       // Reload committees to get updated portfolio status
       const updatedCommittees = await adminCommittees();
       setCommittees(updatedCommittees);
       refreshStats();
       toast.success(`Allotted to ${committeeSlug.toUpperCase()} — ${portfolioName} & email sent to ${reg.email}!`);
-    } catch (e) { toast.error("Allotment failed"); }
+    } catch { toast.error("Allotment failed"); }
   };
+
 
 
   const deleteReg = async (reg) => {
     if (!window.confirm(`Are you sure you want to delete ${reg.full_name}'s registration? This action cannot be undone.`)) return;
     try {
       await adminDeleteRegistration(reg.id);
+      autoRefreshRef.current && clearInterval(autoRefreshRef.current); // pause auto-refresh during delete flow
       setRegs((prev) => prev.filter((x) => x.id !== reg.id));
       setSelected(null);
       refreshStats();
       toast.success("Registration deleted");
+      // Restart auto-refresh after delete
+      autoRefreshRef.current = setInterval(() => loadAll(false), 60000);
     } catch { toast.error("Failed to delete registration"); }
   };
 
@@ -120,9 +172,20 @@ export default function AdminDashboard() {
             <span className="font-display text-lg text-foreground">Paramount MUN · Admin</span>
             <span className="mono-label text-brass text-[9px]">Organizing Committee</span>
           </div>
-          <button onClick={logout} data-testid="admin-logout" className="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-4 text-sm text-foreground hover:border-brass transition-colors">
-            <LogOut size={15} /> Sign out
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => loadAll(true)}
+              disabled={refreshing || loading}
+              title="Refresh all data"
+              className="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3 text-sm text-foreground hover:border-brass transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+              <span className="hidden sm:inline">Refresh</span>
+            </button>
+            <button onClick={logout} data-testid="admin-logout" className="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-4 text-sm text-foreground hover:border-brass transition-colors">
+              <LogOut size={15} /> Sign out
+            </button>
+          </div>
         </div>
       </div>
 
@@ -172,22 +235,20 @@ export default function AdminDashboard() {
                 <Input data-testid="admin-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email, ref ID…" className="bg-white/[0.02] border-border text-foreground focus-visible:ring-brass h-10 pl-9 w-full" />
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <a 
-                  href={`${API}/admin/registrations.csv`} 
-                  download="registrations.csv"
+                <button
+                  onClick={() => downloadCsv("/admin/registrations.csv", "registrations.csv")}
                   className="inline-flex h-10 items-center gap-2 rounded-lg bg-white/[0.05] border border-border px-3.5 text-sm font-medium text-foreground hover:bg-white/[0.09] hover:border-brass/40 transition-colors whitespace-nowrap"
                   title="Export complete list of all registered delegates"
                 >
                   <Download size={15} className="text-brass" /> Export Full List (CSV)
-                </a>
-                <a 
-                  href={`${API}/admin/allotments.csv`} 
-                  download="allotments.csv"
+                </button>
+                <button
+                  onClick={() => downloadCsv("/admin/allotments.csv", "allotments.csv")}
                   className="inline-flex h-10 items-center gap-2 rounded-lg bg-brass px-3.5 text-sm font-medium text-[#070A0F] hover:bg-brass-hover transition-colors whitespace-nowrap"
                   title="Export confirmed allotments only"
                 >
                   <ClipboardList size={15} /> Export Allotments (CSV)
-                </a>
+                </button>
               </div>
             </div>
             <div className="rounded-xl border border-border overflow-hidden overflow-x-auto">
@@ -312,19 +373,7 @@ export default function AdminDashboard() {
 
             <div className="mt-5">
               <div className="mono-label text-muted-foreground mb-2">Payment status & Allotment</div>
-              <div className="flex gap-2 mb-3">
-                {["pending", "verified", "rejected"].map((s) => (
-                  <button
-                    key={s}
-                    data-testid={`admin-set-${s}`}
-                    onClick={() => setRegStatus(selected, s)}
-                    className={`flex-1 h-10 rounded-lg text-sm border transition-colors ${selected.payment_status === s ? "text-[#070A0F]" : "text-foreground"}`}
-                    style={selected.payment_status === s ? { background: STATUS_COLOR[s], borderColor: STATUS_COLOR[s] } : { borderColor: "hsl(var(--border))" }}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
+              <StatusButtons reg={selected} onSetStatus={setRegStatus} />
               
               <div className="rounded-xl border border-border bg-white/[0.02] p-4">
                 <div className="mono-label text-muted-foreground mb-3">Accept & Allot Portfolio</div>
@@ -358,12 +407,48 @@ export default function AdminDashboard() {
   );
 }
 
+// Extracted status buttons with per-button loading state to prevent accidental double-clicks
+function StatusButtons({ reg, onSetStatus }) {
+  const [loadingStatus, setLoadingStatus] = useState(null);
+
+  const handleSetStatus = async (status) => {
+    if (loadingStatus) return;
+    setLoadingStatus(status);
+    try {
+      await onSetStatus(reg, status);
+    } catch {
+      toast.error("Update failed");
+    } finally {
+      setLoadingStatus(null);
+    }
+  };
+
+  return (
+    <div className="flex gap-2 mb-3">
+      {["pending", "verified", "rejected"].map((s) => (
+        <button
+          key={s}
+          data-testid={`admin-set-${s}`}
+          onClick={() => handleSetStatus(s)}
+          disabled={!!loadingStatus}
+          className={`flex-1 h-10 rounded-lg text-sm border transition-colors disabled:opacity-60 ${reg.payment_status === s ? "text-[#070A0F]" : "text-foreground"}`}
+          style={reg.payment_status === s ? { background: STATUS_COLOR[s], borderColor: STATUS_COLOR[s] } : { borderColor: "hsl(var(--border))" }}
+        >
+          {loadingStatus === s ? "…" : s}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AllotmentEditor({ reg, onAllot }) {
   const [pref, setPref] = useState("pref1");
   const [customComm, setCustomComm] = useState("");
   const [customPort, setCustomPort] = useState("");
+  const [allotting, setAllotting] = useState(false);
 
-  const handleAllot = () => {
+  const handleAllot = async () => {
+    if (allotting) return;
     let comm = "", port = "";
     if (pref === "pref1") { comm = reg.preference1?.committee; port = reg.preference1?.portfolio; }
     else if (pref === "pref2") { comm = reg.preference2?.committee; port = reg.preference2?.portfolio; }
@@ -383,7 +468,12 @@ function AllotmentEditor({ reg, onAllot }) {
     if (comm.toUpperCase() === "UNCSW") slug = "uncsw";
     if (comm.toUpperCase() === "UNHRC") slug = "unhrc";
 
-    onAllot(reg, slug, port);
+    setAllotting(true);
+    try {
+      await onAllot(reg, slug, port);
+    } finally {
+      setAllotting(false);
+    }
   };
 
   return (
@@ -407,8 +497,8 @@ function AllotmentEditor({ reg, onAllot }) {
         </div>
       )}
 
-      <button onClick={handleAllot} className="w-full h-9 rounded-lg bg-brass text-[#070A0F] text-sm font-medium hover:bg-brass-hover transition-colors">
-        Confirm & Allot
+      <button onClick={handleAllot} disabled={allotting} className="w-full h-9 rounded-lg bg-brass text-[#070A0F] text-sm font-medium hover:bg-brass-hover transition-colors disabled:opacity-60">
+        {allotting ? "Allotting…" : "Confirm & Allot"}
       </button>
     </div>
   );
@@ -416,11 +506,19 @@ function AllotmentEditor({ reg, onAllot }) {
 
 function NoteEditor({ reg, onSave }) {
   const [note, setNote] = useState(reg.admin_note || "");
+  const [saving, setSaving] = useState(false);
   useEffect(() => setNote(reg.admin_note || ""), [reg.id, reg.admin_note]);
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try { await onSave(reg, note); } finally { setSaving(false); }
+  };
+
   return (
     <div>
       <textarea value={note} onChange={(e) => setNote(e.target.value)} data-testid="admin-note" rows={3} className="w-full rounded-lg bg-white/[0.02] border border-border text-foreground p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brass" placeholder="Verification notes…" />
-      <button onClick={() => onSave(reg, note)} className="mt-2 h-9 px-4 rounded-lg bg-brass text-[#070A0F] text-sm font-medium hover:bg-brass-hover transition-colors">Save note</button>
+      <button onClick={handleSave} disabled={saving} className="mt-2 h-9 px-4 rounded-lg bg-brass text-[#070A0F] text-sm font-medium hover:bg-brass-hover transition-colors disabled:opacity-60">{saving ? "Saving…" : "Save note"}</button>
     </div>
   );
 }
@@ -429,6 +527,9 @@ function CommitteeEditor({ committee, onCommitteeSaved }) {
   const [c, setC] = useState(committee);
   const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Sync local state when parent refreshes committee data (e.g. after global refresh)
+  useEffect(() => { setC(committee); }, [committee]);
 
   const saveMeta = async () => {
     setSaving(true);

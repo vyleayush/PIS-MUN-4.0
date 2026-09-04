@@ -575,11 +575,13 @@ const server = http.createServer((req, res) => {
 
   // GET /api/admin/stats
   if (pathname === "/api/admin/stats" && req.method === "GET") {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     return sendJson(200, dbHelpers.getStats());
   }
 
   // GET /api/admin/registrations
   if (pathname === "/api/admin/registrations" && req.method === "GET") {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     return sendJson(200, dbHelpers.getRegistrations());
   }
 
@@ -678,6 +680,7 @@ const server = http.createServer((req, res) => {
 
   // GET /api/admin/committees
   if (pathname === "/api/admin/committees" && req.method === "GET") {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     return sendJson(200, dbHelpers.getCommittees());
   }
 
@@ -704,6 +707,7 @@ const server = http.createServer((req, res) => {
 
   // GET /api/admin/referral-codes
   if (pathname === "/api/admin/referral-codes" && req.method === "GET") {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     return sendJson(200, dbHelpers.getReferralCodes());
   }
 
