@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: paramount-mun-api
+    runtime: node
+    region: singapore  # closest to India
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: ADMIN_EMAIL
+        value: paramountinternationalmun.26@gmail.com
+      - key: ADMIN_PASSWORD
+        sync: false  # set manually in Render dashboard
+      - key: ORGANIZER_EMAIL
+        value: paramountinternationalmun.26@gmail.com
+      - key: FRONTEND_URL
+        value: https://paramountmun.in
+      - key: GMAIL_USER
+        value: paramountinternationalmun.26@gmail.com
+      - key: GMAIL_APP_PASSWORD
+        sync: false  # set manually in Render dashboard (16-char app password from Google)
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: mun-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
