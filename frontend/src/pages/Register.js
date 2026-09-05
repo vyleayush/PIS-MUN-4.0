@@ -65,7 +65,7 @@ export default function Register() {
       .then((d) => {
         if (Array.isArray(d) && d.length > 0) setCommittees(d);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
@@ -100,7 +100,7 @@ export default function Register() {
     return c.portfolios.filter((p) => p && p.status === "available");
   };
   const cName = (slug) => committees.find((c) => c.slug === slug)?.name || slug;
-  
+
   // Calculate fee based on referral code
   const calculateFee = () => {
     if (refState === 'valid' && f.referral_code.trim()) {

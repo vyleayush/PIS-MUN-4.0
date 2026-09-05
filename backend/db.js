@@ -2,7 +2,7 @@ const Database = require("better-sqlite3");
 const path = require("path");
 const fs = require("fs");
 
-const DATA_DIR = path.join(__dirname, "data");
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
@@ -206,6 +206,7 @@ function seedDatabase() {
     insertMany(initialList);
   }
 
+  /*
   const refCount = db.prepare("SELECT COUNT(*) as count FROM referral_codes").get().count;
   if (refCount === 0) {
     console.log("[DB] Seeding referral_codes table in SQLite...");
@@ -236,6 +237,7 @@ function seedDatabase() {
     });
     insertMany(initialCodes);
   }
+  */
 }
 
 seedDatabase();
