@@ -46,6 +46,7 @@ db.exec(`
     email TEXT NOT NULL,
     phone TEXT NOT NULL,
     school TEXT DEFAULT '',
+    student_class TEXT DEFAULT '',
     city TEXT DEFAULT '',
     experience TEXT DEFAULT '',
     awards TEXT DEFAULT '',
@@ -70,6 +71,12 @@ db.exec(`
     email_status TEXT DEFAULT '{"organizer":false,"delegate":false}' -- JSON
   );
 `);
+
+try {
+  db.exec(`ALTER TABLE registrations ADD COLUMN student_class TEXT DEFAULT '';`);
+} catch (e) {
+  // Ignore if column already exists
+}
 
 // ----------------------------- Seed Data -----------------------------
 const UNGA_ROSTER = [
@@ -396,12 +403,12 @@ const dbHelpers = {
   createRegistration(data) {
     const stmt = db.prepare(`
       INSERT INTO registrations (
-        id, reference_id, full_name, email, phone, school, city, experience, awards,
+        id, reference_id, full_name, email, phone, school, student_class, city, experience, awards,
         is_delegation, delegation_size, heard_from, preference1, preference2, preference3,
         referral_code, applied_referral, fee, fee_tier, payment_status, payment_screenshot,
         id_card, accepted_terms, admin_note, allotted_committee, allotted_portfolio, created_at, email_status
       ) VALUES (
-        @id, @reference_id, @full_name, @email, @phone, @school, @city, @experience, @awards,
+        @id, @reference_id, @full_name, @email, @phone, @school, @student_class, @city, @experience, @awards,
         @is_delegation, @delegation_size, @heard_from, @preference1, @preference2, @preference3,
         @referral_code, @applied_referral, @fee, @fee_tier, @payment_status, @payment_screenshot,
         @id_card, @accepted_terms, @admin_note, @allotted_committee, @allotted_portfolio, @created_at, @email_status
@@ -415,6 +422,7 @@ const dbHelpers = {
       email: data.email,
       phone: data.phone,
       school: data.school || "",
+      student_class: data.student_class || "",
       city: data.city || "",
       experience: data.experience || "",
       awards: data.awards || "",
@@ -454,6 +462,7 @@ const dbHelpers = {
         email = @email,
         phone = @phone,
         school = @school,
+        student_class = @student_class,
         city = @city,
         experience = @experience,
         awards = @awards,
@@ -481,6 +490,7 @@ const dbHelpers = {
       email: merged.email,
       phone: merged.phone,
       school: merged.school || "",
+      student_class: merged.student_class || "",
       city: merged.city || "",
       experience: merged.experience || "",
       awards: merged.awards || "",
@@ -534,7 +544,7 @@ const dbHelpers = {
 
   generateAllotmentsCsv() {
     const regs = this.getRegistrations();
-    const headers = ["Reference ID", "Student Name", "Phone", "Email", "School", "Committee", "Country / Political Leader (Portfolio)"];
+    const headers = ["Reference ID", "Student Name", "Phone", "Email", "School", "Class", "Committee", "Country / Political Leader (Portfolio)"];
     const lines = [headers.join(",")];
 
     regs.forEach((r) => {
@@ -545,6 +555,7 @@ const dbHelpers = {
           `"${(r.phone || "").replace(/"/g, '""')}"`,
           `"${(r.email || "").replace(/"/g, '""')}"`,
           `"${(r.school || "").replace(/"/g, '""')}"`,
+          `"${(r.student_class || "").replace(/"/g, '""')}"`,
           `"${(r.allotted_committee || "").replace(/"/g, '""')}"`,
           `"${(r.allotted_portfolio || "").replace(/"/g, '""')}"`,
         ];
@@ -563,6 +574,7 @@ const dbHelpers = {
       "Phone Number",
       "Email",
       "School / Institution",
+      "Class",
       "City",
       "Allotted Committee",
       "Allotted Portfolio (Country / Leader)",
@@ -592,6 +604,7 @@ const dbHelpers = {
         `"${(r.phone || "").replace(/"/g, '""')}"`,
         `"${(r.email || "").replace(/"/g, '""')}"`,
         `"${(r.school || "").replace(/"/g, '""')}"`,
+        `"${(r.student_class || "").replace(/"/g, '""')}"`,
         `"${(r.city || "").replace(/"/g, '""')}"`,
         `"${(r.allotted_committee || "").replace(/"/g, '""')}"`,
         `"${(r.allotted_portfolio || "").replace(/"/g, '""')}"`,

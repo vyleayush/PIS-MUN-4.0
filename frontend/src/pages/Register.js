@@ -50,7 +50,7 @@ export default function Register() {
   const [reference, setReference] = useState("");
 
   const [f, setF] = useState({
-    full_name: "", email: "", phone: "", school: "", city: "",
+    full_name: "", email: "", phone: "", school: "", student_class: "", city: "",
     experience: "", awards: "", is_delegation: false, delegation_size: "",
     heard_from: "",
     preference1: { committee: "", portfolio: "" },
@@ -120,6 +120,7 @@ export default function Register() {
     }
     if (step === 2) {
       if (!f.school.trim()) return "Enter your school or college";
+      if (!f.student_class.trim()) return "Enter your class";
       if (!f.experience) return "Select your MUN experience level";
       if (f.is_delegation && (!f.delegation_size || Number(f.delegation_size) < 1)) return "Enter your delegation size";
     }
@@ -133,6 +134,7 @@ export default function Register() {
       if (!f.preference3.committee) return "Pick your third committee preference";
     }
     if (step === 6) {
+      if (f.school.toLowerCase().includes("paramount") && f.school.toLowerCase().includes("international") && f.school.toLowerCase().includes("school") && !f.referral_code.trim()) return "Referral code is mandatory for Paramount International School students";
       if (f.referral_code.trim() && !f.id_card) return "Please upload your ID card to use a referral code";
       if (!f.accepted_terms) return "Please accept the terms to continue";
     }
@@ -267,6 +269,9 @@ export default function Register() {
                     <h1 className="font-display text-3xl text-foreground">Where are you from?</h1>
                     <Field label="School / College" required>
                       <Input data-testid="reg-school" className={inputCls} value={f.school} onChange={(e) => set("school", e.target.value)} placeholder="Paramount International School" />
+                    </Field>
+                    <Field label="Class" required>
+                      <Input data-testid="reg-class" className={inputCls} value={f.student_class} onChange={(e) => set("student_class", e.target.value)} placeholder="e.g. 11th, 12th" />
                     </Field>
                     <Field label="City">
                       <Input data-testid="reg-city" className={inputCls} value={f.city} onChange={(e) => set("city", e.target.value)} placeholder="New Delhi" />
