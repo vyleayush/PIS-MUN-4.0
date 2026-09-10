@@ -1,4 +1,3 @@
-const Database = require("better-sqlite3");
 const path = require("path");
 const fs = require("fs");
 
@@ -8,11 +7,46 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 const DB_PATH = path.join(DATA_DIR, "paramount_mun.db");
-const db = new Database(DB_PATH);
 
-// Optimize performance and concurrency with WAL mode
-db.pragma("journal_mode = WAL");
-db.pragma("synchronous = NORMAL");
+let db;
+try {
+  let sqliteModule;
+  try {
+    sqliteModule = require("node:sqlite");
+  } catch {
+    sqliteModule = require("sqlite");
+  }
+  if (sqliteModule && sqliteModule.DatabaseSync) {
+    const syncDb = new sqliteModule.DatabaseSync(DB_PATH);
+    const sanitize = (args) => args.map((a) => (a === undefined ? null : a));
+    db = {
+      exec: (sql) => syncDb.exec(sql),
+      pragma: (pragmaStr) => syncDb.exec(`PRAGMA ${pragmaStr};`),
+      prepare: (sql) => {
+        const stmt = syncDb.prepare(sql);
+        return {
+          run: (...args) => stmt.run(...sanitize(args)),
+          get: (...args) => stmt.get(...sanitize(args)),
+          all: (...args) => stmt.all(...sanitize(args)),
+        };
+      },
+    };
+  } else {
+    throw new Error("node:sqlite not available");
+  }
+} catch {
+  const Database = require("better-sqlite3");
+  db = new Database(DB_PATH);
+  db.pragma("journal_mode = WAL");
+  db.pragma("synchronous = NORMAL");
+}
+
+if (db.pragma) {
+  try {
+    db.pragma("journal_mode = WAL");
+    db.pragma("synchronous = NORMAL");
+  } catch {}
+}
 
 // ----------------------------- Schema Setup -----------------------------
 db.exec(`

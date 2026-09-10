@@ -40,8 +40,8 @@ const HIGHLIGHTS = [
   {
     icon: Calendar,
     title: "Participation & Fee",
-    desc: "₹1,700 for Non-Paramount students / ₹1,500 for Paramount students. 9th & 10th October 2026.",
-    badge: "9–10 Oct 2026",
+    desc: "₹1,700 Non-Paramount / ₹1,500 Paramount. Last date for registration: 30 September 2026. Conference on 9–10 October.",
+    badge: "Deadline: 30 Sept",
   },
   {
     icon: ShieldCheck,
@@ -311,7 +311,7 @@ export const BrochureSection = () => {
                   to="/register"
                   className="font-semibold text-foreground hover:text-brass transition-colors font-mono"
                 >
-                  Proceed to Registration →
+                  Proceed to Registration (Closes 30 Sept) →
                 </Link>
               </div>
             </div>
