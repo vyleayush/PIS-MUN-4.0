@@ -17,6 +17,10 @@ const FAQS = [
     a: "The delegate fee is ₹1700 per delegate. It covers your full delegate kit — a pad file, an ID card, a pen, and a notepad — plus meals across both conference days. You'll complete payment via UPI at the final step of registration.",
   },
   {
+    q: "When is the last date to register?",
+    a: "Registrations close on 30 September 2026. Because committee seats and country portfolios are allotted on a rolling basis upon payment verification, we strongly encourage registering early before desired portfolios are filled.",
+  },
+  {
     q: "What's your refund policy?",
     a: "No refunds. Once you register and pay, the fee is non-refundable — no partial refunds, no exceptions for withdrawal. What we do allow is a delegate replacement: you can transfer your spot to another delegate, subject to organizer approval.",
   },

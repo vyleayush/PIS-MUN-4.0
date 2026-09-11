@@ -25,7 +25,7 @@ export const RegisterCTA = () => (
       <Reveal>
         <div className="mono-label text-brass mb-4 flex items-center justify-center gap-2">
           <Sparkles size={14} className="text-brass animate-pulse" />
-          / Registrations open
+          / Registrations Open · Closes 30 September 2026
         </div>
         <h2 className="section-heading text-foreground">Seats fill fast. Yours shouldn't wait.</h2>
         <p className="mt-5 max-w-xl mx-auto text-secondary-foreground/85 leading-relaxed">
@@ -40,7 +40,7 @@ export const RegisterCTA = () => (
         </div>
       </Reveal>
       <Reveal delay={0.1}>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col items-center">
           <Link
             to="/register"
             data-testid="cta-register-button"
@@ -48,7 +48,11 @@ export const RegisterCTA = () => (
           >
             Register Now <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
-          <p className="mt-4 mono-label text-muted-foreground">All registrations are non-refundable</p>
+          <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass text-xs font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
+            <span>Registration Deadline: <strong>30 September 2026</strong></span>
+          </div>
+          <p className="mt-3 mono-label text-muted-foreground text-xs">All registrations are non-refundable</p>
         </div>
       </Reveal>
     </div>

@@ -155,11 +155,11 @@ export const Hero = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-brass" />
             </span>
             <span className="mono-label text-brass text-[10px] sm:text-xs tracking-wider">
-              Registrations Live · Chapter IV
+              Registrations Live · Closes 30 Sept 2026
             </span>
             <span className="text-secondary-foreground/60 text-xs hidden sm:inline">|</span>
             <span className="text-secondary-foreground/80 text-xs hidden sm:inline font-mono">
-              9 &amp; 10 Oct 2026
+              Conference: 9 &amp; 10 Oct 2026
             </span>
           </motion.div>
 
@@ -213,7 +213,7 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55 }}
-            className="mt-7 sm:mt-8 w-full max-w-lg mx-auto flex flex-col items-center gap-3 px-2"
+            className="mt-7 sm:mt-8 w-full max-w-lg mx-auto flex flex-col items-center gap-2.5 px-2"
           >
             {/* Primary Action Button */}
             <Link
@@ -225,6 +225,10 @@ export const Hero = () => {
               <span>Register Now — Chapter IV</span>
               <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
+            <div className="flex items-center gap-1.5 text-xs text-brass/90 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
+              <span>Registration Deadline: <strong className="text-brass font-bold">30 September 2026</strong></span>
+            </div>
           </motion.div>
 
           {/* Dates & Venue Info Pill */}
@@ -232,8 +236,18 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.65 }}
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
+            className="mt-10 flex flex-wrap items-center justify-center gap-4 sm:gap-6"
           >
+            <div className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-brass/40 bg-card/50 backdrop-blur-md hover:border-brass transition-all shadow-[0_0_20px_rgba(199,163,90,0.1)]">
+              <div className="w-8 h-8 rounded-lg bg-brass/10 flex items-center justify-center text-brass">
+                <Sparkles size={18} />
+              </div>
+              <div className="text-left">
+                <div className="mono-label text-brass text-[10px]">Last Date to Register</div>
+                <div className="font-display text-xl sm:text-2xl text-brass">30 September 2026</div>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-md hover:border-brass/50 transition-all">
               <div className="w-8 h-8 rounded-lg bg-brass/10 flex items-center justify-center text-brass">
                 <Flame size={18} />

@@ -217,13 +217,29 @@ export default function Register() {
             <span className="font-display text-lg text-foreground">Paramount MUN</span>
             <span className="mono-label text-brass text-[9px]">Registration</span>
           </Link>
-          <Link to="/" className="mono-label text-muted-foreground hover:text-brass transition-colors">Back to site</Link>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-block mono-label text-brass text-[10px] px-2.5 py-1 rounded-full border border-brass/30 bg-brass/10">
+              Deadline: 30 Sept 2026
+            </span>
+            <Link to="/" className="mono-label text-muted-foreground hover:text-brass transition-colors">Back to site</Link>
+          </div>
         </div>
       </div>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
         {phase === "form" && (
           <>
+            {/* Registration Deadline Alert Banner */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-brass/30 bg-brass/10 text-brass text-xs font-mono shadow-[0_0_20px_rgba(199,163,90,0.1)]">
+              <span className="flex items-center gap-2 font-semibold">
+                <span className="w-2 h-2 rounded-full bg-brass animate-pulse" />
+                Registration Deadline: 30 September 2026
+              </span>
+              <span className="text-secondary-foreground/70 text-[11px]">
+                Portfolios allotted on rolling basis
+              </span>
+            </div>
+
             <div className="mb-8">
               <div className="flex items-center justify-between">
                 <div className="mono-label text-brass font-medium">Step 0{step} / 06 — {STEPS[step - 1]}</div>

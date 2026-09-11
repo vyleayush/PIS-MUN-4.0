@@ -107,7 +107,7 @@ export default function Brochure() {
           <div>
             <div className="mono-label text-brass flex items-center gap-2 text-xs">
               <FileText size={14} className="text-brass" />
-              <span>Chapter IV · 9–10 October 2026</span>
+              <span>Chapter IV · 9–10 October 2026 · Registration Deadline: 30 September 2026</span>
             </div>
             <h1 className="font-display text-2xl sm:text-3xl text-foreground mt-1">
               Paramount MUN Official Conference Dossier
@@ -223,7 +223,7 @@ export default function Brochure() {
             </div>
             <div>
               <h4 className="text-sm font-semibold text-foreground">Register Now</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Secure your country or portfolio.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Closes 30 Sept · Portfolios rolling.</p>
               <Link to="/register" className="text-xs text-brass hover:underline font-semibold mt-1 inline-block">
                 Register for MUN →
               </Link>
