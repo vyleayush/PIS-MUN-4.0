@@ -623,6 +623,10 @@ function ReferralManager({ codes, setCodes }) {
     } catch { toast.error("Failed to update status"); }
   };
   const remove = async (c) => {
+    if (c.protected) {
+      toast.error(`"${c.code}" is a permanently protected code and cannot be deleted.`);
+      return;
+    }
     if (!window.confirm(`Delete referral code ${c.code}?`)) return;
     try { await adminDeleteCode(c.code); setCodes((prev) => prev.filter((x) => x.code !== c.code)); toast.success("Deleted"); }
     catch { toast.error("Failed"); }
@@ -652,7 +656,14 @@ function ReferralManager({ codes, setCodes }) {
               const isActive = Boolean(c.active);
               return (
                 <tr key={c.code} className="border-t border-border hover:bg-white/[0.01]">
-                  <td className="px-4 py-3 font-mono font-semibold text-brass">{c.code}</td>
+                  <td className="px-4 py-3 font-mono font-semibold text-brass">
+                    {c.code}
+                    {c.protected && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-[10px] font-medium bg-[#C7A35A]/15 text-[#C7A35A] border border-[#C7A35A]/30 rounded-full px-2 py-0.5">
+                        🔒 Protected
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.label || "—"}</td>
                   <td className="px-4 py-3 text-foreground font-medium">₹{c.discount}</td>
                   <td className="px-4 py-3 text-muted-foreground">{c.usage_count || 0}</td>
@@ -675,7 +686,15 @@ function ReferralManager({ codes, setCodes }) {
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right"><button onClick={() => remove(c)} className="text-destructive hover:opacity-80 p-1"><Trash2 size={16} /></button></td>
+                  <td className="px-4 py-3 text-right">
+                    {c.protected ? (
+                      <span className="text-muted-foreground/40 p-1 cursor-not-allowed" title="Protected — cannot be deleted">
+                        <Trash2 size={16} />
+                      </span>
+                    ) : (
+                      <button onClick={() => remove(c)} className="text-destructive hover:opacity-80 p-1"><Trash2 size={16} /></button>
+                    )}
+                  </td>
                 </tr>
               );
             })}

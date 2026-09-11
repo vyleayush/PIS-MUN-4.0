@@ -8,6 +8,7 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 const DB_PATH = path.join(DATA_DIR, "paramount_mun.db");
+console.log(`[DB] Opening database at: ${DB_PATH}`);
 const db = new Database(DB_PATH);
 
 // Optimize performance and concurrency with WAL mode
@@ -36,7 +37,8 @@ db.exec(`
     discount INTEGER DEFAULT 500,
     label TEXT DEFAULT 'Referral Discount',
     active INTEGER DEFAULT 1,
-    usage_count INTEGER DEFAULT 0
+    usage_count INTEGER DEFAULT 0,
+    protected INTEGER DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS registrations (
@@ -70,7 +72,19 @@ db.exec(`
     created_at TEXT NOT NULL,
     email_status TEXT DEFAULT '{"organizer":false,"delegate":false}' -- JSON
   );
+
+  CREATE TABLE IF NOT EXISTS db_metadata (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
+
+// Add protected column to referral_codes if it doesn't exist yet (migration)
+try {
+  db.exec(`ALTER TABLE referral_codes ADD COLUMN protected INTEGER DEFAULT 0;`);
+} catch (e) {
+  // Ignore if column already exists
+}
 
 try {
   db.exec(`ALTER TABLE registrations ADD COLUMN student_class TEXT DEFAULT '';`);
@@ -160,87 +174,146 @@ const DEFAULT_COMMITTEES = [
   },
 ];
 
-const DEFAULT_REFERRAL_CODES = [
-  { code: "PARAMOUNT200", discount: 200, label: "Paramount Ambassador Discount", active: 1, usage_count: 0 },
-  { code: "DELEGATE2026", discount: 500, label: "Early Delegate Discount", active: 1, usage_count: 0 },
+// The permanent protected referral code. MUST NEVER be regenerated, overwritten, or deleted.
+// Uses INSERT OR IGNORE so it is only inserted once and never overwrites existing data.
+const PERMANENT_REFERRAL_CODES = [
+  { code: "PARAMOUNT200", discount: 200, label: "Paramount Ambassador Discount", active: 1, protected: 1 },
 ];
 
-// Seed initial data if tables are empty
+// ----------------------------- Idempotent Seed (runs only once per fresh database) -----------------------------
 function seedDatabase() {
-  const commCount = db.prepare("SELECT COUNT(*) as count FROM committees").get().count;
-  if (commCount === 0) {
-    console.log("[DB] Seeding committees table in SQLite...");
-    const insertComm = db.prepare(`
-      INSERT INTO committees (id, slug, name, full_name, agenda, tag, chair, eb, difficulty, handbook_link, order_num, portfolios)
-      VALUES (@id, @slug, @name, @full_name, @agenda, @tag, @chair, @eb, @difficulty, @handbook_link, @order_num, @portfolios)
-    `);
+  // Check if this database has already been seeded using a sentinel record.
+  // If the sentinel exists, we NEVER re-seed — even if individual tables look empty.
+  const alreadySeeded = db.prepare("SELECT value FROM db_metadata WHERE key = 'seeded_at'").get();
 
-    // Check if JSON exists first
-    const jsonFile = path.join(DATA_DIR, "committees.json");
-    let initialList = DEFAULT_COMMITTEES;
-    if (fs.existsSync(jsonFile)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
-        if (Array.isArray(parsed) && parsed.length > 0) initialList = parsed;
-      } catch (e) {}
+  if (!alreadySeeded) {
+    // Fresh database — seed committees from committees.json if it exists, else from DEFAULT_COMMITTEES
+    console.log(`[DB SEED] Fresh database detected. Running initial seed. Path: ${DB_PATH}`);
+    const commCount = db.prepare("SELECT COUNT(*) as count FROM committees").get().count;
+    if (commCount === 0) {
+      const jsonFile = path.join(DATA_DIR, "committees.json");
+      let initialList = DEFAULT_COMMITTEES;
+      if (fs.existsSync(jsonFile)) {
+        try {
+          const parsed = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            initialList = parsed;
+            console.log(`[DB SEED] Using committees.json as seed source (${parsed.length} committees)`);
+          }
+        } catch (e) {
+          console.error("[DB SEED] committees.json parse error, falling back to defaults:", e.message);
+        }
+      } else {
+        console.log("[DB SEED] committees.json not found, using built-in defaults");
+      }
+
+      const insertComm = db.prepare(`
+        INSERT INTO committees (id, slug, name, full_name, agenda, tag, chair, eb, difficulty, handbook_link, order_num, portfolios)
+        VALUES (@id, @slug, @name, @full_name, @agenda, @tag, @chair, @eb, @difficulty, @handbook_link, @order_num, @portfolios)
+      `);
+      const insertMany = db.transaction((list) => {
+        for (const c of list) {
+          insertComm.run({
+            id: c.id || c.slug,
+            slug: c.slug,
+            name: c.name,
+            full_name: c.full_name,
+            agenda: c.agenda,
+            tag: c.tag || "",
+            chair: c.chair || "TBA",
+            eb: c.eb || "TBA",
+            difficulty: c.difficulty || "All levels",
+            handbook_link: c.handbook_link || "",
+            order_num: c.order || c.order_num || 0,
+            portfolios: typeof c.portfolios === "string" ? c.portfolios : JSON.stringify(c.portfolios || []),
+          });
+        }
+      });
+      insertMany(initialList);
+      console.log(`[DB SEED] Committees seeded (${initialList.length} committees)`);
     }
 
-    const insertMany = db.transaction((list) => {
-      for (const c of list) {
-        insertComm.run({
-          id: c.id || c.slug,
-          slug: c.slug,
-          name: c.name,
-          full_name: c.full_name,
-          agenda: c.agenda,
-          tag: c.tag || "",
-          chair: c.chair || "TBA",
-          eb: c.eb || "TBA",
-          difficulty: c.difficulty || "All levels",
-          handbook_link: c.handbook_link || "",
-          order_num: c.order || 0,
-          portfolios: JSON.stringify(c.portfolios || []),
-        });
-      }
-    });
-    insertMany(initialList);
+    // Write the sentinel so we NEVER re-seed this database again
+    db.prepare("INSERT OR REPLACE INTO db_metadata (key, value) VALUES ('seeded_at', ?)").run(new Date().toISOString());
+    console.log(`[DB SEED] Seed sentinel written. This database will not be re-seeded on future restarts.`);
+  } else {
+    console.log(`[DB] Database already seeded at ${alreadySeeded.value}. Skipping seed.`);
   }
 
-  /*
-  const refCount = db.prepare("SELECT COUNT(*) as count FROM referral_codes").get().count;
-  if (refCount === 0) {
-    console.log("[DB] Seeding referral_codes table in SQLite...");
-    const insertCode = db.prepare(`
-      INSERT INTO referral_codes (code, discount, label, active, usage_count)
-      VALUES (@code, @discount, @label, @active, @usage_count)
-    `);
-
-    const jsonFile = path.join(DATA_DIR, "referral_codes.json");
-    let initialCodes = DEFAULT_REFERRAL_CODES;
-    if (fs.existsSync(jsonFile)) {
-      try {
-        const parsed = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
-        if (Array.isArray(parsed) && parsed.length > 0) initialCodes = parsed;
-      } catch (e) {}
-    }
-
-    const insertMany = db.transaction((codes) => {
-      for (const r of codes) {
-        insertCode.run({
-          code: r.code.toUpperCase(),
-          discount: r.discount || 500,
-          label: r.label || "Referral Discount",
-          active: r.active ? 1 : 0,
-          usage_count: r.usage_count || 0,
-        });
-      }
-    });
-    insertMany(initialCodes);
+  // ------------------------------------------------------------------
+  // ALWAYS run this on every startup (regardless of seed state):
+  // Ensure the permanent protected referral code exists.
+  // INSERT OR IGNORE = only inserts if missing, NEVER overwrites.
+  // ------------------------------------------------------------------
+  const insertProtected = db.prepare(`
+    INSERT OR IGNORE INTO referral_codes (code, discount, label, active, usage_count, protected)
+    VALUES (@code, @discount, @label, @active, 0, @protected)
+  `);
+  for (const pc of PERMANENT_REFERRAL_CODES) {
+    insertProtected.run(pc);
   }
-  */
+
+  // Also ensure the protected flag is set even if the row already existed without it
+  db.prepare("UPDATE referral_codes SET protected = 1 WHERE code = 'PARAMOUNT200'").run();
+
+  console.log(`[DB] Permanent code PARAMOUNT200 ensured in referral_codes (INSERT OR IGNORE — existing value preserved).`);
+
+  // Always sync the JSON fallback files from current DB state on startup.
+  // This ensures committees.json and referral_codes.json always reflect the latest DB,
+  // so if a disaster recovery re-seed ever happens, it restores the latest manually saved state.
+  persistCommitteesJson();
+  persistReferralCodesJson();
+  console.log(`[DB] Synced committees.json and referral_codes.json from live DB state.`);
 }
 
 seedDatabase();
+
+// ----------------------------- Helper: Persist committees.json after any admin change -----------------------------
+// This ensures that if the DB ever needs to be re-seeded from the JSON file,
+// it restores the LATEST manually saved state — not a stale committed version.
+function persistCommitteesJson() {
+  try {
+    const rows = db.prepare("SELECT * FROM committees ORDER BY order_num ASC").all();
+    const committees = rows.map((row) => {
+      const portfolios = JSON.parse(row.portfolios || "[]");
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        full_name: row.full_name,
+        agenda: row.agenda,
+        tag: row.tag || "",
+        chair: row.chair || "TBA",
+        eb: row.eb || "TBA",
+        difficulty: row.difficulty || "All levels",
+        handbook_link: row.handbook_link || "",
+        order: row.order_num,
+        portfolios,
+      };
+    });
+    fs.writeFileSync(path.join(DATA_DIR, "committees.json"), JSON.stringify(committees, null, 2), "utf8");
+  } catch (e) {
+    console.error("[DB] Warning: Could not persist committees.json:", e.message);
+  }
+}
+
+// ----------------------------- Helper: Persist referral_codes.json after any admin change -----------------------------
+function persistReferralCodesJson() {
+  try {
+    const rows = db.prepare("SELECT * FROM referral_codes ORDER BY code ASC").all();
+    const codes = rows.map((r) => ({
+      code: r.code,
+      discount: r.discount,
+      label: r.label,
+      active: !!r.active,
+      usage_count: r.usage_count,
+      protected: !!r.protected,
+    }));
+    fs.writeFileSync(path.join(DATA_DIR, "referral_codes.json"), JSON.stringify(codes, null, 2), "utf8");
+  } catch (e) {
+    console.error("[DB] Warning: Could not persist referral_codes.json:", e.message);
+  }
+}
 
 // ----------------------------- Data Access Helpers -----------------------------
 
@@ -301,13 +374,20 @@ const dbHelpers = {
     const agenda = data.agenda !== undefined ? data.agenda : existing.agenda;
     const handbook_link = data.handbook_link !== undefined ? data.handbook_link : existing.handbook_link;
 
+    console.log(`[DB WRITE] updateCommittee slug=${slug} chair="${chair}" eb="${eb}" difficulty="${difficulty}" at ${new Date().toISOString()}`);
+
     db.prepare(`
       UPDATE committees 
       SET chair = ?, eb = ?, difficulty = ?, agenda = ?, handbook_link = ?
       WHERE slug = ?
     `).run(chair, eb, difficulty, agenda, handbook_link, slug);
 
-    return this.getCommitteeBySlug(slug);
+    const updated = this.getCommitteeBySlug(slug);
+
+    // Persist updated state to committees.json so the seed file is always current
+    persistCommitteesJson();
+
+    return updated;
   },
 
   updatePortfolio(slug, portfolioName, newStatus, delegate = null) {
@@ -324,8 +404,16 @@ const dbHelpers = {
       if (delegate !== undefined) found.delegate = delegate;
     }
 
+    console.log(`[DB WRITE] updatePortfolio slug=${slug} portfolio="${portfolioName}" status="${newStatus}" delegate="${delegate}" at ${new Date().toISOString()}`);
+
     db.prepare("UPDATE committees SET portfolios = ? WHERE slug = ?").run(JSON.stringify(portfolios), slug);
-    return this.getCommitteeBySlug(slug);
+
+    const updated = this.getCommitteeBySlug(slug);
+
+    // Persist updated state to committees.json
+    persistCommitteesJson();
+
+    return updated;
   },
 
   // Referral Codes
@@ -337,6 +425,7 @@ const dbHelpers = {
       label: r.label,
       active: !!r.active,
       usage_count: r.usage_count,
+      protected: !!r.protected,
     }));
   },
 
@@ -349,6 +438,7 @@ const dbHelpers = {
       label: row.label,
       active: !!row.active,
       usage_count: row.usage_count,
+      protected: !!row.protected,
     };
   },
 
@@ -358,12 +448,16 @@ const dbHelpers = {
     const label = data.label || "Referral Discount";
     const active = data.active !== false ? 1 : 0;
 
+    console.log(`[DB WRITE] createReferralCode code="${code}" discount=${discount} at ${new Date().toISOString()}`);
+
     db.prepare(`
-      INSERT INTO referral_codes (code, discount, label, active, usage_count)
-      VALUES (?, ?, ?, ?, 0)
+      INSERT INTO referral_codes (code, discount, label, active, usage_count, protected)
+      VALUES (?, ?, ?, ?, 0, 0)
     `).run(code, discount, label, active);
 
-    return this.getReferralCode(code);
+    const created = this.getReferralCode(code);
+    persistReferralCodesJson();
+    return created;
   },
 
   updateReferralCode(code, data) {
@@ -374,17 +468,31 @@ const dbHelpers = {
     const label = data.label !== undefined ? data.label : existing.label;
     const active = data.active !== undefined ? (data.active ? 1 : 0) : (existing.active ? 1 : 0);
 
+    console.log(`[DB WRITE] updateReferralCode code="${code}" discount=${discount} active=${active} at ${new Date().toISOString()}`);
+
     db.prepare(`
       UPDATE referral_codes
       SET discount = ?, label = ?, active = ?
       WHERE code = ?
     `).run(discount, label, active, code.toUpperCase());
 
-    return this.getReferralCode(code);
+    const updated = this.getReferralCode(code);
+    persistReferralCodesJson();
+    return updated;
   },
 
   deleteReferralCode(code) {
-    return db.prepare("DELETE FROM referral_codes WHERE code = ?").run((code || "").toUpperCase());
+    const upper = (code || "").toUpperCase();
+    // SAFETY: Never delete a protected referral code
+    const existing = this.getReferralCode(upper);
+    if (existing && existing.protected) {
+      console.warn(`[DB WRITE] BLOCKED deleteReferralCode for protected code "${upper}" at ${new Date().toISOString()}`);
+      return { changes: 0, blocked: true };
+    }
+    console.log(`[DB WRITE] deleteReferralCode code="${upper}" at ${new Date().toISOString()}`);
+    const result = db.prepare("DELETE FROM referral_codes WHERE code = ? AND protected = 0").run(upper);
+    persistReferralCodesJson();
+    return result;
   },
 
   incrementReferralUsage(code) {
@@ -403,6 +511,8 @@ const dbHelpers = {
   },
 
   createRegistration(data) {
+    console.log(`[DB WRITE] createRegistration id="${data.id}" reference_id="${data.reference_id}" name="${data.full_name}" email="${data.email}" at ${new Date().toISOString()}`);
+
     const stmt = db.prepare(`
       INSERT INTO registrations (
         id, reference_id, full_name, email, phone, school, student_class, city, experience, awards,
@@ -456,6 +566,9 @@ const dbHelpers = {
     const existing = this.getRegistration(idOrRef);
     if (!existing) return null;
 
+    console.log(`[DB WRITE] updateRegistration id="${existing.id}" ref="${existing.reference_id}" fields=${JSON.stringify(Object.keys(updates))} at ${new Date().toISOString()}`);
+
+    // Merge: only update the fields explicitly passed in 'updates', preserve everything else
     const merged = { ...existing, ...updates };
 
     db.prepare(`
@@ -519,6 +632,12 @@ const dbHelpers = {
   },
 
   deleteRegistration(idOrRef) {
+    const existing = this.getRegistration(idOrRef);
+    if (existing) {
+      console.log(`[DB WRITE] deleteRegistration id="${existing.id}" ref="${existing.reference_id}" name="${existing.full_name}" at ${new Date().toISOString()}`);
+    } else {
+      console.log(`[DB WRITE] deleteRegistration attempted for unknown id/ref="${idOrRef}" at ${new Date().toISOString()}`);
+    }
     return db.prepare("DELETE FROM registrations WHERE id = ? OR reference_id = ?").run(idOrRef, idOrRef);
   },
 

@@ -4,9 +4,9 @@
     "slug": "unga",
     "name": "UNGA",
     "full_name": "United Nations General Assembly",
-    "agenda": "Addressing global security architecture, state sovereignty, and conflict de-escalation protocols in Eastern Europe and the Middle East.",
+    "agenda": "Code of War: Reimagining Global Frameworks for Artificial Intelligence in Modern Combat, Including Cyber Warfare, Surveillance Systems, and the Prevention of Misuse by State and Non- State Actors.",
     "tag": "Flagship committee · General Assembly",
-    "chair": "TBA",
+    "chair": "Alex Morgan",
     "eb": "TBA",
     "difficulty": "All experience levels",
     "handbook_link": "",
@@ -19,7 +19,7 @@
       },
       {
         "name": "Argentina",
-        "status": "available",
+        "status": "reserved",
         "delegate": null
       },
       {
@@ -89,8 +89,8 @@
       },
       {
         "name": "France",
-        "status": "allotted",
-        "delegate": "Test Delegate"
+        "status": "available",
+        "delegate": null
       },
       {
         "name": "Germany",
@@ -119,8 +119,8 @@
       },
       {
         "name": "India",
-        "status": "available",
-        "delegate": null
+        "status": "allotted",
+        "delegate": "Test Delegate"
       },
       {
         "name": "Indonesia",
@@ -319,7 +319,7 @@
     "slug": "aippm",
     "name": "AIPPM",
     "full_name": "All India Political Parties Meet",
-    "agenda": "Reviewing the implementation and socio-economic ramifications of the Uniform Civil Code with special focus on federal autonomy.",
+    "agenda": "Deliberation on Electoral Reforms with Special Emphasis on Criminalization of Politics and Transparency.",
     "tag": "Indian crisis committee",
     "chair": "TBA",
     "eb": "TBA",
@@ -964,7 +964,7 @@
     "slug": "who",
     "name": "WHO",
     "full_name": "World Health Organization",
-    "agenda": "Combating the rise of lifestyle diseases among youth and working class (obesity, hypertension, and occupational health).",
+    "agenda": "Combating the rise of lifestyle diseases among youth and working class (obesity, hypertension, etc).",
     "tag": "Specialized agency",
     "chair": "TBA",
     "eb": "TBA",
@@ -979,8 +979,8 @@
       },
       {
         "name": "Argentina",
-        "status": "allotted",
-        "delegate": "shubh"
+        "status": "available",
+        "delegate": null
       },
       {
         "name": "Australia",
@@ -994,8 +994,8 @@
       },
       {
         "name": "Bangladesh",
-        "status": "allotted",
-        "delegate": "Meenakshi"
+        "status": "available",
+        "delegate": null
       },
       {
         "name": "Belgium",
@@ -1279,7 +1279,7 @@
     "slug": "uncsw",
     "name": "UNCSW",
     "full_name": "UN Commission on the Status of Women",
-    "agenda": "Promoting Gender Equality in the Digital Age with Special Emphasis on Bridging the Digital Gender Divide & role of Pink Tax.",
+    "agenda": "Promoting Gender Equality in the Digital Age with Special Emphasis on Bridging the Digital Gender Divide & role of Pink tax.",
     "tag": "Specialized · Gender & tech",
     "chair": "TBA",
     "eb": "TBA",
@@ -1594,7 +1594,7 @@
     "slug": "unhrc",
     "name": "UNHRC",
     "full_name": "UN Human Rights Council",
-    "agenda": "Ensuring Human Rights while Expanding National Digital Identity Systems and biometric surveillance frameworks.",
+    "agenda": "Ensuring Human Rights while Expanding National Digital Identity Systems.",
     "tag": "Rights & digital identity",
     "chair": "TBA",
     "eb": "TBA",

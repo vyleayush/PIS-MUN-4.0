@@ -591,6 +591,7 @@ const server = http.createServer((req, res) => {
   if (pathname.startsWith("/api/admin/registrations/") && !pathname.endsWith("/allot") && req.method === "PATCH") {
     const id = pathname.replace("/api/admin/registrations/", "").trim();
     return getBody((payload) => {
+      console.log(`[SERVER] PATCH /admin/registrations/${id} fields=${JSON.stringify(Object.keys(payload))} at ${new Date().toISOString()}`);
       const updated = dbHelpers.updateRegistration(id, payload);
       if (!updated) return sendJson(404, { detail: "Registration not found" });
 
@@ -618,8 +619,10 @@ const server = http.createServer((req, res) => {
   // DELETE /api/admin/registrations/:id
   if (pathname.startsWith("/api/admin/registrations/") && req.method === "DELETE") {
     const id = pathname.replace("/api/admin/registrations/", "").trim();
+    console.log(`[SERVER] DELETE /admin/registrations/${id} at ${new Date().toISOString()}`);
     const result = dbHelpers.deleteRegistration(id);
     if (result.changes === 0) return sendJson(404, { detail: "Registration not found" });
+    console.log(`[SERVER] Registration ${id} deleted successfully at ${new Date().toISOString()}`);
     return sendJson(200, { ok: true });
   }
 
@@ -744,7 +747,12 @@ const server = http.createServer((req, res) => {
   if (pathname.startsWith("/api/admin/referral-codes/") && req.method === "DELETE") {
     const code = pathname.replace("/api/admin/referral-codes/", "").trim().toUpperCase();
     const result = dbHelpers.deleteReferralCode(code);
+    if (result.blocked) {
+      console.warn(`[SERVER] BLOCKED: Attempt to delete protected referral code "${code}" at ${new Date().toISOString()}`);
+      return sendJson(403, { detail: `Referral code "${code}" is permanently protected and cannot be deleted.` });
+    }
     if (result.changes === 0) return sendJson(404, { detail: "Referral code not found" });
+    console.log(`[SERVER] Referral code "${code}" deleted at ${new Date().toISOString()}`);
     return sendJson(200, { ok: true });
   }
 
