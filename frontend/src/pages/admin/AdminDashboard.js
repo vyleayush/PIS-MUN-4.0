@@ -85,14 +85,18 @@ export default function AdminDashboard() {
   const logout = () => { localStorage.removeItem("pmun_admin_token"); navigate("/admin/login"); };
 
   const setRegStatus = async (reg, status) => {
-    // The API returns { ok, registration, ...spread } — extract the clean registration object
+    // The API returns { ok, registration, email_sent, ...spread } — extract the clean registration object
     const response = await adminUpdateRegistration(reg.id, { payment_status: status });
     const updated = response.registration ?? response;
     setRegs((prev) => prev.map((x) => (x.id === reg.id ? updated : x)));
     if (selected?.id === reg.id) setSelected(updated);
     refreshStats();
     if (status === "verified") {
-      toast.success(`Marked verified & confirmation email sent to ${reg.email}!`);
+      if (response.email_sent) {
+        toast.success(`Marked verified & confirmation email sent to ${reg.email}!`);
+      } else {
+        toast.warning(`Marked verified but email delivery failed — check backend logs for details.`);
+      }
     } else {
       toast.success(`Marked ${status}`);
     }

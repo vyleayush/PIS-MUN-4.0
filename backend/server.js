@@ -590,29 +590,43 @@ const server = http.createServer((req, res) => {
   // PATCH /api/admin/registrations/:id
   if (pathname.startsWith("/api/admin/registrations/") && !pathname.endsWith("/allot") && req.method === "PATCH") {
     const id = pathname.replace("/api/admin/registrations/", "").trim();
-    return getBody((payload) => {
+    return getBody(async (payload) => {
       console.log(`[SERVER] PATCH /admin/registrations/${id} fields=${JSON.stringify(Object.keys(payload))} at ${new Date().toISOString()}`);
       const updated = dbHelpers.updateRegistration(id, payload);
       if (!updated) return sendJson(404, { detail: "Registration not found" });
 
       // Automatically send email to delegate when registration is approved/verified
+      let emailSent = false;
       if (payload.payment_status === "verified") {
+        let subject, html;
         if (updated.allotted_committee && updated.allotted_portfolio) {
-          const subject = "Your Paramount International MUN Allotment is Here! 🏛️✨";
-          const html = allotmentEmailHtml(updated);
-          sendGmailEmail(updated.email, subject, html, ORGANIZER_EMAIL).then((res) => {
-            if (!res.ok) console.error("[EMAIL ERROR] Allotment email failed:", res.error);
-          });
+          subject = "Your Paramount International MUN Allotment is Here! 🏛️✨";
+          html = allotmentEmailHtml(updated);
         } else {
-          const subject = `Registration Approved & Verified — Paramount International MUN (${updated.reference_id}) ✅`;
-          const html = verificationApprovedEmailHtml(updated);
-          sendGmailEmail(updated.email, subject, html, ORGANIZER_EMAIL).then((res) => {
-            if (!res.ok) console.error("[EMAIL ERROR] Verification approved email failed:", res.error);
+          subject = `Registration Approved & Verified — Paramount International MUN (${updated.reference_id}) ✅`;
+          html = verificationApprovedEmailHtml(updated);
+        }
+
+        try {
+          const emailResult = await sendGmailEmail(updated.email, subject, html, ORGANIZER_EMAIL);
+          emailSent = emailResult.ok;
+          if (emailResult.ok) {
+            console.log(`[EMAIL SUCCESS] Verification/allotment email delivered to ${updated.email} for ${updated.reference_id}`);
+          } else {
+            console.error(`[EMAIL FAILED] Verification email to ${updated.email} for ${updated.reference_id}: ${emailResult.error}`);
+          }
+          // Update email_status in DB to track delivery
+          const currentEmailStatus = updated.email_status || {};
+          dbHelpers.updateRegistration(updated.id, {
+            email_status: { ...currentEmailStatus, verification: emailResult.ok },
           });
+        } catch (emailErr) {
+          console.error(`[EMAIL ERROR] Exception sending verification email to ${updated.email}: ${emailErr.message}`);
+          emailSent = false;
         }
       }
 
-      return sendJson(200, { ok: true, registration: updated, ...updated });
+      return sendJson(200, { ok: true, registration: updated, email_sent: emailSent, ...updated });
     });
   }
 

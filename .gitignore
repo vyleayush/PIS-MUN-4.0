@@ -64,6 +64,17 @@ chainlit.md
 # Data and databases
 agenthub/agents/youtube/db
 
+# Runtime data — NEVER commit these; the live database is the single source of truth.
+# Committing these files causes every deploy to overwrite the production database
+# with a stale snapshot, which is the root cause of the persistence bug.
+backend/data/paramount_mun.db
+backend/data/paramount_mun.db-wal
+backend/data/paramount_mun.db-shm
+backend/data/committees.json
+backend/data/referral_codes.json
+backend/data/registrations.json
+backend/data/allotments.csv
+
 # Archive files and large assets
 **/*.zip
 **/*.tar.gz
