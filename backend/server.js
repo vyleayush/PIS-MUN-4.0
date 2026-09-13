@@ -40,6 +40,7 @@ const SENDER_EMAIL = process.env.SENDER_EMAIL || "onboarding@resend.dev";
 const ORGANIZER_EMAIL = process.env.ORGANIZER_EMAIL || "paramountinternationalmun.26@gmail.com";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const BASE_FEE = 1700;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "jhpdtlzwbteabkne";
 
 // ----------------------------- Email Templates -----------------------------
 
@@ -290,8 +291,8 @@ function allotmentEmailHtml(reg) {
 
 function sendGmailEmail(to, subject, html, bcc = null) {
   return new Promise((resolve) => {
-    const user = process.env.GMAIL_USER || process.env.ADMIN_EMAIL;
-    const pass = process.env.GMAIL_APP_PASSWORD;
+    const user = process.env.GMAIL_USER || process.env.ADMIN_EMAIL || "paramountinternationalmun.26@gmail.com";
+    const pass = process.env.GMAIL_APP_PASSWORD || GMAIL_APP_PASSWORD;
 
     if (!user || !pass) {
       console.log(`[EMAIL NOTICE] GMAIL_APP_PASSWORD is not set. Skipped sending email to ${to}`);
