@@ -496,22 +496,12 @@ const server = http.createServer((req, res) => {
 
   // Debug email delivery test endpoint
   if (pathname === "/api/test-email" && req.method === "GET") {
-    const user = process.env.GMAIL_USER || process.env.ADMIN_EMAIL || "paramountinternationalmun.26@gmail.com";
-    const pass = process.env.GMAIL_APP_PASSWORD || GMAIL_APP_PASSWORD;
-    const testTransporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user, pass },
-    });
-    testTransporter.sendMail({
-      from: `"Paramount MUN" <${user}>`,
-      to: "paramountinternationalmun.26@gmail.com",
-      subject: "Render SMTP Test — Paramount International MUN",
-      text: "Testing email delivery from Render service directly.",
-    }, (err, info) => {
-      if (err) {
-        return sendJson(500, { ok: false, error: err.message, user, passConfigured: !!pass });
-      }
-      return sendJson(200, { ok: true, messageId: info.messageId, response: info.response, user });
+    sendGmailEmail(
+      "paramountinternationalmun.26@gmail.com",
+      "Render Delivery Test — Paramount International MUN",
+      "<p>Testing email delivery directly through Render service with port 465 SSL and Resend fallback.</p>"
+    ).then((result) => {
+      sendJson(result.ok ? 200 : 500, result);
     });
     return;
   }
