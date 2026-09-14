@@ -289,19 +289,79 @@ function allotmentEmailHtml(reg) {
   return wrapEmail(inner);
 }
 
-function sendGmailEmail(to, subject, html, bcc = null) {
+function sendResendEmail(to, subject, html) {
   return new Promise((resolve) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    const sender = process.env.SENDER_EMAIL || "onboarding@resend.dev";
+    if (!apiKey) return resolve({ ok: false, error: "no_resend_key" });
+
+    const postData = JSON.stringify({
+      from: `Paramount MUN <${sender}>`,
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+    });
+
+    const https = require("https");
+    const req = https.request(
+      {
+        hostname: "api.resend.com",
+        path: "/emails",
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(postData),
+        },
+        timeout: 10000,
+      },
+      (res) => {
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`[RESEND SUCCESS] Email sent to ${to}: ${body}`);
+            resolve({ ok: true, id: body });
+          } else {
+            console.error(`[RESEND ERROR] Status ${res.statusCode}: ${body}`);
+            resolve({ ok: false, error: body });
+          }
+        });
+      }
+    );
+    req.on("error", (err) => {
+      console.error(`[RESEND ERROR] Request failed: ${err.message}`);
+      resolve({ ok: false, error: err.message });
+    });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ ok: false, error: "timeout" });
+    });
+    req.write(postData);
+    req.end();
+  });
+}
+
+function sendGmailEmail(to, subject, html, bcc = null) {
+  return new Promise(async (resolve) => {
     const user = process.env.GMAIL_USER || process.env.ADMIN_EMAIL || "paramountinternationalmun.26@gmail.com";
     const pass = process.env.GMAIL_APP_PASSWORD || GMAIL_APP_PASSWORD;
 
     if (!user || !pass) {
-      console.log(`[EMAIL NOTICE] GMAIL_APP_PASSWORD is not set. Skipped sending email to ${to}`);
-      return resolve({ ok: false, error: "no_credentials" });
+      console.log(`[EMAIL NOTICE] Gmail credentials not set. Falling back to Resend for ${to}`);
+      const resendRes = await sendResendEmail(to, subject, html);
+      return resolve(resendRes);
     }
 
+    // Use port 465 SSL with direct connection to bypass cloud port 587 block
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
 
     const mailOptions = {
@@ -315,13 +375,14 @@ function sendGmailEmail(to, subject, html, bcc = null) {
       mailOptions.bcc = bcc;
     }
 
-    transporter.sendMail(mailOptions, (error, info) => {
+    transporter.sendMail(mailOptions, async (error, info) => {
       if (error) {
-        console.error(`[EMAIL ERROR] Sending to ${to}: ${error.message}`);
-        resolve({ ok: false, error: error.message });
+        console.error(`[EMAIL ERROR] Gmail SMTP to ${to} failed: ${error.message}. Trying Resend fallback...`);
+        const resendRes = await sendResendEmail(to, subject, html);
+        resolve(resendRes.ok ? { ok: true, fallback: "resend" } : { ok: false, error: error.message });
       } else {
-        console.log(`[EMAIL SUCCESS] Email delivered to ${to}`);
-        resolve({ ok: true });
+        console.log(`[EMAIL SUCCESS] Email delivered via Gmail SMTP to ${to}`);
+        resolve({ ok: true, messageId: info.messageId });
       }
     });
   });
