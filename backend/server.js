@@ -424,7 +424,7 @@ function committeePublic(c) {
 
 // ----------------------------- HTTP Server -----------------------------
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   // CORS Headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
@@ -455,12 +455,12 @@ const server = http.createServer((req, res) => {
         req.connection.destroy();
       }
     });
-    req.on("end", () => {
+    req.on("end", async () => {
       try {
         const contentType = req.headers["content-type"] || "";
         if (contentType.includes("application/json")) {
           const json = body ? JSON.parse(body) : {};
-          callback(json);
+          await callback(json);
         } else if (contentType.includes("multipart/form-data")) {
           // Parse multipart screenshot upload if sent as form-data
           let screenshot = "";
@@ -468,17 +468,17 @@ const server = http.createServer((req, res) => {
           if (match && match[1]) {
             screenshot = "data:image/png;base64," + Buffer.from(match[1], "binary").toString("base64");
           }
-          callback({ payment_screenshot: screenshot, file: screenshot });
+          await callback({ payment_screenshot: screenshot, file: screenshot });
         } else {
           try {
             const json = body ? JSON.parse(body) : {};
-            callback(json);
+            await callback(json);
           } catch (e) {
-            callback({});
+            await callback({});
           }
         }
       } catch (err) {
-        sendJson(400, { detail: "Invalid request payload format" });
+        sendJson(400, { detail: "Invalid request payload format: " + err.message });
       }
     });
   };
@@ -487,10 +487,12 @@ const server = http.createServer((req, res) => {
 
   // Health check
   if ((pathname === "/api" || pathname === "/api/" || pathname === "/api/health") && req.method === "GET") {
+    const dbInfo = dbHelpers.getDbInfo ? dbHelpers.getDbInfo() : { type: "SQLite", isCloud: false };
     return sendJson(200, {
-      message: "Paramount International MUN API (Node.js & SQLite)",
+      message: "Paramount International MUN API (Node.js & SQLite/libSQL)",
       status: "healthy",
-      database: "SQLite (paramount_mun.db)",
+      database: dbInfo.type,
+      isCloud: dbInfo.isCloud,
     });
   }
 
@@ -528,14 +530,14 @@ const server = http.createServer((req, res) => {
 
   // GET /api/committees
   if (pathname === "/api/committees" && req.method === "GET") {
-    const list = dbHelpers.getCommittees();
+    const list = await dbHelpers.getCommittees();
     return sendJson(200, list.map(committeePublic));
   }
 
   // GET /api/committees/:slug
   if (pathname.startsWith("/api/committees/") && req.method === "GET") {
     const slug = pathname.replace("/api/committees/", "").trim();
-    const found = dbHelpers.getCommitteeBySlug(slug);
+    const found = await dbHelpers.getCommitteeBySlug(slug);
     if (found) {
       return sendJson(200, committeePublic(found));
     }
@@ -544,10 +546,10 @@ const server = http.createServer((req, res) => {
 
   // POST /api/referral/validate
   if (pathname === "/api/referral/validate" && req.method === "POST") {
-    return getBody((payload) => {
+    return getBody(async (payload) => {
       const code = (payload.code || "").trim().toUpperCase();
       if (!code) return sendJson(200, { valid: false });
-      const rec = dbHelpers.getReferralCode(code);
+      const rec = await dbHelpers.getReferralCode(code);
       if (rec && rec.active) {
         return sendJson(200, { valid: true, label: rec.label, discount: rec.discount });
       }
@@ -557,7 +559,7 @@ const server = http.createServer((req, res) => {
 
   // POST /api/registrations
   if (pathname === "/api/registrations" && req.method === "POST") {
-    return getBody((payload) => {
+    return getBody(async (payload) => {
       if (!payload.accepted_terms) {
         return sendJson(400, { detail: "You must accept the terms to register." });
       }
@@ -571,12 +573,12 @@ const server = http.createServer((req, res) => {
 
       const code = (payload.referral_code || "").trim().toUpperCase();
       if (code) {
-        const rec = dbHelpers.getReferralCode(code);
+        const rec = await dbHelpers.getReferralCode(code);
         if (rec && rec.active) {
           fee = BASE_FEE - (rec.discount || 500);
           tier = "Paramount (referral)";
           applied_code = rec.code;
-          dbHelpers.incrementReferralUsage(rec.code);
+          await dbHelpers.incrementReferralUsage(rec.code);
         }
       }
 
@@ -613,8 +615,8 @@ const server = http.createServer((req, res) => {
         email_status: { organizer: false, delegate: false },
       };
 
-      const saved = dbHelpers.createRegistration(newRegistration);
-      console.log(`[Registration] Created in SQLite: ${reference_id} for ${payload.full_name} (${payload.email})`);
+      const saved = await dbHelpers.createRegistration(newRegistration);
+      console.log(`[Registration] Created: ${reference_id} for ${payload.full_name} (${payload.email})`);
 
       // Fire confirmation emails asynchronously
       const orgHtml = organizerEmailHtml(newRegistration);
@@ -623,8 +625,8 @@ const server = http.createServer((req, res) => {
       Promise.all([
         sendGmailEmail(ORGANIZER_EMAIL, `New MUN Registration — ${reference_id} (${payload.full_name})`, orgHtml),
         sendGmailEmail(payload.email, `Registration received — Paramount International MUN (${reference_id})`, delHtml),
-      ]).then(([orgRes, delRes]) => {
-        dbHelpers.updateRegistration(saved.id, {
+      ]).then(async ([orgRes, delRes]) => {
+        await dbHelpers.updateRegistration(saved.id, {
           email_status: { organizer: orgRes.ok, delegate: delRes.ok },
         });
       });
@@ -641,14 +643,14 @@ const server = http.createServer((req, res) => {
   if (pathname.startsWith("/api/registrations/") && pathname.endsWith("/screenshot") && req.method === "POST") {
     const parts = pathname.split("/");
     const ref = parts[3];
-    return getBody((payload) => {
-      const reg = dbHelpers.getRegistration(ref);
+    return getBody(async (payload) => {
+      const reg = await dbHelpers.getRegistration(ref);
       if (!reg) {
         return sendJson(404, { detail: "Registration not found" });
       }
       const screenshot = payload.payment_screenshot || payload.file;
       if (screenshot) {
-        const updated = dbHelpers.updateRegistration(reg.id, { payment_screenshot: screenshot });
+        const updated = await dbHelpers.updateRegistration(reg.id, { payment_screenshot: screenshot });
         return sendJson(200, { ok: true, registration: updated });
       }
       return sendJson(200, { ok: true, registration: reg });
@@ -672,13 +674,15 @@ const server = http.createServer((req, res) => {
   // GET /api/admin/stats
   if (pathname === "/api/admin/stats" && req.method === "GET") {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-    return sendJson(200, dbHelpers.getStats());
+    const stats = await dbHelpers.getStats();
+    return sendJson(200, stats);
   }
 
   // GET /api/admin/registrations
   if (pathname === "/api/admin/registrations" && req.method === "GET") {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-    return sendJson(200, dbHelpers.getRegistrations());
+    const regs = await dbHelpers.getRegistrations();
+    return sendJson(200, regs);
   }
 
   // PATCH /api/admin/registrations/:id
@@ -686,7 +690,7 @@ const server = http.createServer((req, res) => {
     const id = pathname.replace("/api/admin/registrations/", "").trim();
     return getBody(async (payload) => {
       console.log(`[SERVER] PATCH /admin/registrations/${id} fields=${JSON.stringify(Object.keys(payload))} at ${new Date().toISOString()}`);
-      const updated = dbHelpers.updateRegistration(id, payload);
+      const updated = await dbHelpers.updateRegistration(id, payload);
       if (!updated) return sendJson(404, { detail: "Registration not found" });
 
       // Automatically send email to delegate when registration is approved/verified
@@ -711,7 +715,7 @@ const server = http.createServer((req, res) => {
           }
           // Update email_status in DB to track delivery
           const currentEmailStatus = updated.email_status || {};
-          dbHelpers.updateRegistration(updated.id, {
+          await dbHelpers.updateRegistration(updated.id, {
             email_status: { ...currentEmailStatus, verification: emailResult.ok },
           });
         } catch (emailErr) {
@@ -728,7 +732,7 @@ const server = http.createServer((req, res) => {
   if (pathname.startsWith("/api/admin/registrations/") && req.method === "DELETE") {
     const id = pathname.replace("/api/admin/registrations/", "").trim();
     console.log(`[SERVER] DELETE /admin/registrations/${id} at ${new Date().toISOString()}`);
-    const result = dbHelpers.deleteRegistration(id);
+    const result = await dbHelpers.deleteRegistration(id);
     if (result.changes === 0) return sendJson(404, { detail: "Registration not found" });
     console.log(`[SERVER] Registration ${id} deleted successfully at ${new Date().toISOString()}`);
     return sendJson(200, { ok: true });
@@ -739,8 +743,8 @@ const server = http.createServer((req, res) => {
     const parts = pathname.split("/");
     const id = parts[4];
 
-    return getBody((payload) => {
-      const reg = dbHelpers.getRegistration(id);
+    return getBody(async (payload) => {
+      const reg = await dbHelpers.getRegistration(id);
       if (!reg) return sendJson(404, { detail: "Registration not found" });
 
       const { committeeSlug, portfolioName } = payload;
@@ -749,14 +753,14 @@ const server = http.createServer((req, res) => {
       }
 
       // Update registration with allotment & mark verified
-      const updatedReg = dbHelpers.updateRegistration(reg.id, {
+      const updatedReg = await dbHelpers.updateRegistration(reg.id, {
         allotted_committee: committeeSlug,
         allotted_portfolio: portfolioName,
         payment_status: "verified",
       });
 
       // Update portfolio status in committee
-      dbHelpers.updatePortfolio(committeeSlug, portfolioName, "allotted", reg.full_name);
+      await dbHelpers.updatePortfolio(committeeSlug, portfolioName, "allotted", reg.full_name);
 
       // Send allotment email asynchronously with upgraded formatting
       const subject = "Your Paramount International MUN Allotment is Here! 🏛️✨";
@@ -771,7 +775,7 @@ const server = http.createServer((req, res) => {
 
   // GET /api/admin/allotments.csv
   if (pathname === "/api/admin/allotments.csv" && req.method === "GET") {
-    const csvData = dbHelpers.generateAllotmentsCsv();
+    const csvData = await dbHelpers.generateAllotmentsCsv();
     res.writeHead(200, {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": 'attachment; filename="allotments.csv"',
@@ -782,7 +786,7 @@ const server = http.createServer((req, res) => {
 
   // GET /api/admin/registrations.csv
   if (pathname === "/api/admin/registrations.csv" && req.method === "GET") {
-    const csvData = dbHelpers.generateRegistrationsCsv();
+    const csvData = await dbHelpers.generateRegistrationsCsv();
     res.writeHead(200, {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": 'attachment; filename="registrations.csv"',
@@ -794,15 +798,16 @@ const server = http.createServer((req, res) => {
   // GET /api/admin/committees
   if (pathname === "/api/admin/committees" && req.method === "GET") {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-    return sendJson(200, dbHelpers.getCommittees());
+    const comms = await dbHelpers.getCommittees();
+    return sendJson(200, comms);
   }
 
   // PATCH /api/admin/committees/:slug/portfolios
   if (pathname.startsWith("/api/admin/committees/") && pathname.endsWith("/portfolios") && req.method === "PATCH") {
     const parts = pathname.split("/");
     const slug = parts[4];
-    return getBody((payload) => {
-      const updated = dbHelpers.updatePortfolio(slug, payload.name, payload.status);
+    return getBody(async (payload) => {
+      const updated = await dbHelpers.updatePortfolio(slug, payload.name, payload.status);
       if (!updated) return sendJson(404, { detail: "Committee not found" });
       return sendJson(200, updated);
     });
@@ -811,8 +816,8 @@ const server = http.createServer((req, res) => {
   // PATCH /api/admin/committees/:slug
   if (pathname.startsWith("/api/admin/committees/") && req.method === "PATCH") {
     const slug = pathname.replace("/api/admin/committees/", "").trim();
-    return getBody((payload) => {
-      const updated = dbHelpers.updateCommittee(slug, payload);
+    return getBody(async (payload) => {
+      const updated = await dbHelpers.updateCommittee(slug, payload);
       if (!updated) return sendJson(404, { detail: "Committee not found" });
       return sendJson(200, updated);
     });
@@ -821,22 +826,23 @@ const server = http.createServer((req, res) => {
   // GET /api/admin/referral-codes
   if (pathname === "/api/admin/referral-codes" && req.method === "GET") {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-    return sendJson(200, dbHelpers.getReferralCodes());
+    const codes = await dbHelpers.getReferralCodes();
+    return sendJson(200, codes);
   }
 
   // POST /api/admin/referral-codes
   if (pathname === "/api/admin/referral-codes" && req.method === "POST") {
-    return getBody((payload) => {
+    return getBody(async (payload) => {
       const code = (payload.code || "").trim().toUpperCase();
       if (!code) return sendJson(400, { detail: "Code is required" });
       try {
-        const created = dbHelpers.createReferralCode(payload);
+        const created = await dbHelpers.createReferralCode(payload);
         return sendJson(200, created);
       } catch (err) {
         if (err.message && err.message.includes("UNIQUE constraint failed")) {
           return sendJson(400, { detail: "Code already exists" });
         }
-        return sendJson(500, { detail: "Failed to create code" });
+        return sendJson(500, { detail: "Failed to create code: " + err.message });
       }
     });
   }
@@ -844,8 +850,8 @@ const server = http.createServer((req, res) => {
   // PATCH /api/admin/referral-codes/:code
   if (pathname.startsWith("/api/admin/referral-codes/") && req.method === "PATCH") {
     const code = pathname.replace("/api/admin/referral-codes/", "").trim().toUpperCase();
-    return getBody((payload) => {
-      const updated = dbHelpers.updateReferralCode(code, payload);
+    return getBody(async (payload) => {
+      const updated = await dbHelpers.updateReferralCode(code, payload);
       if (!updated) return sendJson(404, { detail: "Referral code not found" });
       return sendJson(200, updated);
     });
@@ -854,14 +860,41 @@ const server = http.createServer((req, res) => {
   // DELETE /api/admin/referral-codes/:code
   if (pathname.startsWith("/api/admin/referral-codes/") && req.method === "DELETE") {
     const code = pathname.replace("/api/admin/referral-codes/", "").trim().toUpperCase();
-    const result = dbHelpers.deleteReferralCode(code);
+    const result = await dbHelpers.deleteReferralCode(code);
     if (result.blocked) {
       console.warn(`[SERVER] BLOCKED: Attempt to delete protected referral code "${code}" at ${new Date().toISOString()}`);
       return sendJson(403, { detail: `Referral code "${code}" is permanently protected and cannot be deleted.` });
     }
-    if (result.changes === 0) return sendJson(404, { detail: "Referral code not found" });
+    if (result.changes === 0 && result.rowsAffected === 0) return sendJson(404, { detail: "Referral code not found" });
     console.log(`[SERVER] Referral code "${code}" deleted at ${new Date().toISOString()}`);
     return sendJson(200, { ok: true });
+  }
+
+  // GET /api/admin/backup — Export full JSON backup
+  if (pathname === "/api/admin/backup" && req.method === "GET") {
+    try {
+      const backupData = await dbHelpers.exportBackupData();
+      res.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Content-Disposition": `attachment; filename="paramount_mun_backup_${new Date().toISOString().slice(0, 10)}.json"`,
+      });
+      res.end(JSON.stringify(backupData, null, 2));
+      return;
+    } catch (err) {
+      return sendJson(500, { detail: "Failed to export backup: " + err.message });
+    }
+  }
+
+  // POST /api/admin/restore — Restore full JSON backup
+  if (pathname === "/api/admin/restore" && req.method === "POST") {
+    return getBody(async (payload) => {
+      try {
+        const result = await dbHelpers.restoreBackupData(payload);
+        return sendJson(200, result);
+      } catch (err) {
+        return sendJson(400, { detail: "Restore failed: " + err.message });
+      }
+    });
   }
 
   // Fallback: If not an API route, serve static files from React build directory (if available)

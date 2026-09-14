@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download, RefreshCw } from "lucide-react";
+import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download, RefreshCw, Database, UploadCloud } from "lucide-react";
 import {
   adminStats, adminRegistrations, adminUpdateRegistration, adminDeleteRegistration, adminAllotRegistration,
   adminCommittees, adminUpdateCommittee, adminUpdatePortfolio,
@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const autoRefreshRef = useRef(null);
   const selectedRef = useRef(selected);
+  const restoreInputRef = useRef(null);
   useEffect(() => { selectedRef.current = selected; }, [selected]);
 
   const refreshStats = useCallback(() => adminStats().then(setStats).catch(() => {}), []);
@@ -56,36 +57,44 @@ export default function AdminDashboard() {
       setRegs(r);
       setCommittees(c);
       setCodes(k);
-      // Update the open drawer with fresh data if there is one
-      const curr = selectedRef.current;
-      if (curr) {
-        const fresh = r.find((x) => x.id === curr.id);
+      // If a delegate is currently selected in the detail view, update their data
+      if (selectedRef.current) {
+        const fresh = r.find((x) => x.id === selectedRef.current.id);
         if (fresh) setSelected(fresh);
       }
-      if (isManual) toast.success("Data refreshed");
-    } catch (e) {
-      toast.error("Session expired. Please sign in again.");
-      localStorage.removeItem("pmun_admin_token");
-      navigate("/admin/login");
+    } catch (err) {
+      if (err.message && err.message.includes("401")) {
+        localStorage.removeItem("pmun_admin_token");
+        navigate("/admin/login");
+      }
     } finally {
       setLoading(false);
-      setRefreshing(false);
+      if (isManual) {
+        setRefreshing(false);
+        toast.success("Dashboard refreshed");
+      }
     }
   }, [navigate]);
 
   useEffect(() => {
-    if (!localStorage.getItem("pmun_admin_token")) { navigate("/admin/login"); return; }
-    loadAll();
-    // Auto-refresh every 60 seconds so admins always see fresh data
+    const token = localStorage.getItem("pmun_admin_token");
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+    loadAll(false);
+
+    // Auto-refresh every 60 seconds
     autoRefreshRef.current = setInterval(() => loadAll(false), 60000);
-    return () => { if (autoRefreshRef.current) clearInterval(autoRefreshRef.current); };
-    // eslint-disable-next-line
-  }, []);
+    return () => clearInterval(autoRefreshRef.current);
+  }, [loadAll, navigate]);
 
-  const logout = () => { localStorage.removeItem("pmun_admin_token"); navigate("/admin/login"); };
+  const logout = () => {
+    localStorage.removeItem("pmun_admin_token");
+    navigate("/admin/login");
+  };
 
-  const setRegStatus = async (reg, status) => {
-    // The API returns { ok, registration, email_sent, ...spread } — extract the clean registration object
+  const updateStatus = async (reg, status) => {
     const response = await adminUpdateRegistration(reg.id, { payment_status: status });
     const updated = response.registration ?? response;
     setRegs((prev) => prev.map((x) => (x.id === reg.id ? updated : x)));
@@ -93,14 +102,15 @@ export default function AdminDashboard() {
     refreshStats();
     if (status === "verified") {
       if (response.email_sent) {
-        toast.success(`Marked verified & confirmation email sent to ${reg.email}!`);
+        toast.success(`Marked verified & confirmation email delivered to ${reg.email}! 📧✅`);
       } else {
-        toast.warning(`Marked verified but email delivery failed — check backend logs for details.`);
+        toast.success(`Marked verified (Note: check server logs for email status)`);
       }
     } else {
       toast.success(`Marked ${status}`);
     }
   };
+  const setRegStatus = updateStatus;
 
   const saveNote = async (reg, note) => {
     const response = await adminUpdateRegistration(reg.id, { admin_note: note });
@@ -131,6 +141,59 @@ export default function AdminDashboard() {
     }
   };
 
+  // Full Database JSON Backup Export
+  const exportBackup = async () => {
+    try {
+      const token = localStorage.getItem("pmun_admin_token");
+      const res = await fetch(`${API}/admin/backup?t=${Date.now()}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        cache: "no-store",
+      });
+      if (!res.ok) throw new Error("Backup download failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `paramount_mun_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Database backup downloaded successfully!");
+    } catch (err) {
+      toast.error("Failed to export backup: " + err.message);
+    }
+  };
+
+  // Restore Database Backup from JSON file
+  const handleRestoreFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!window.confirm("Restore this database backup? This will sync all committees, portfolios, referral codes, and registrations.")) {
+        e.target.value = "";
+        return;
+      }
+      const token = localStorage.getItem("pmun_admin_token");
+      const res = await fetch(`${API}/admin/restore`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(parsed),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Restore failed");
+      toast.success(`Restored successfully: ${data.restored_committees} committees, ${data.restored_referral_codes} codes, ${data.restored_registrations} registrations.`);
+      loadAll(true);
+    } catch (err) {
+      toast.error("Restore failed: " + err.message);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
   const allotPortfolio = async (reg, committeeSlug, portfolioName) => {
     try {
       const resp = await adminAllotRegistration(reg.id, { committeeSlug, portfolioName });
@@ -145,8 +208,6 @@ export default function AdminDashboard() {
     } catch { toast.error("Allotment failed"); }
   };
 
-
-
   const deleteReg = async (reg) => {
     if (!window.confirm(`Are you sure you want to delete ${reg.full_name}'s registration? This action cannot be undone.`)) return;
     try {
@@ -158,25 +219,65 @@ export default function AdminDashboard() {
       toast.success("Registration deleted");
       // Restart auto-refresh after delete
       autoRefreshRef.current = setInterval(() => loadAll(false), 60000);
-    } catch { toast.error("Failed to delete registration"); }
+    } catch { toast.error("Delete failed"); }
   };
 
   const filtered = regs.filter((r) => {
     if (!q) return true;
-    const s = `${r.full_name} ${r.email} ${r.school} ${r.reference_id}`.toLowerCase();
-    return s.includes(q.toLowerCase());
+    const s = q.toLowerCase();
+    return (
+      r.full_name?.toLowerCase().includes(s) ||
+      r.email?.toLowerCase().includes(s) ||
+      r.phone?.includes(s) ||
+      r.reference_id?.toLowerCase().includes(s) ||
+      r.school?.toLowerCase().includes(s)
+    );
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
+      <input
+        type="file"
+        ref={restoreInputRef}
+        accept=".json"
+        onChange={handleRestoreFile}
+        className="hidden"
+      />
       {/* topbar */}
-      <div className="border-b border-border bg-card/50 sticky top-0 z-40 backdrop-blur-md">
+      <div className="border-b border-border bg-card/65 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-lg text-foreground">Paramount MUN · Admin</span>
-            <span className="mono-label text-brass text-[9px]">Organizing Committee</span>
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col leading-none">
+              <span className="font-display text-lg text-foreground">Paramount MUN · Admin</span>
+              <span className="mono-label text-brass text-[9px]">Organizing Committee</span>
+            </div>
+            {stats?.database?.isCloud ? (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-[#2FBF71]/10 text-[#2FBF71] border border-[#2FBF71]/30" title="Connected to Turso Cloud Database — Changes never reset">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#2FBF71] animate-pulse" /> Cloud DB Active
+              </span>
+            ) : (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-white/[0.05] text-muted-foreground border border-border" title="Using local database file">
+                <Database size={11} /> Local DB
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={exportBackup}
+              title="Download full JSON backup of committees, codes, and registrations"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-white/[0.03] px-3 text-xs text-foreground hover:border-brass hover:text-brass transition-colors"
+            >
+              <Download size={13} className="text-brass" />
+              <span className="hidden md:inline">Export Backup</span>
+            </button>
+            <button
+              onClick={() => restoreInputRef.current?.click()}
+              title="Restore from JSON backup file"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-white/[0.03] px-3 text-xs text-foreground hover:border-brass hover:text-brass transition-colors"
+            >
+              <UploadCloud size={13} className="text-brass" />
+              <span className="hidden md:inline">Restore Backup</span>
+            </button>
             <button
               onClick={() => loadAll(true)}
               disabled={refreshing || loading}

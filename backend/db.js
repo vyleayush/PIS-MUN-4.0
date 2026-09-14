@@ -1,4 +1,4 @@
-const Database = require("better-sqlite3");
+const { createClient } = require("@libsql/client");
 const path = require("path");
 const fs = require("fs");
 
@@ -7,89 +7,28 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const DB_PATH = path.join(DATA_DIR, "paramount_mun.db");
-console.log(`[DB] Opening database at: ${DB_PATH}`);
-const db = new Database(DB_PATH);
+// Check if Turso Cloud credentials are provided via environment variables
+const TURSO_URL = process.env.TURSO_DATABASE_URL || process.env.LIBSQL_URL;
+const TURSO_AUTH_TOKEN = process.env.TURSO_AUTH_TOKEN;
+const isCloudDb = !!(TURSO_URL && TURSO_AUTH_TOKEN);
 
-// Optimize performance and concurrency with WAL mode
-db.pragma("journal_mode = WAL");
-db.pragma("synchronous = NORMAL");
+let dbClient;
+let dbType;
 
-// ----------------------------- Schema Setup -----------------------------
-db.exec(`
-  CREATE TABLE IF NOT EXISTS committees (
-    id TEXT PRIMARY KEY,
-    slug TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    full_name TEXT NOT NULL,
-    agenda TEXT NOT NULL,
-    tag TEXT DEFAULT '',
-    chair TEXT DEFAULT 'TBA',
-    eb TEXT DEFAULT 'TBA',
-    difficulty TEXT DEFAULT 'Beginner Friendly',
-    handbook_link TEXT DEFAULT '',
-    order_num INTEGER DEFAULT 0,
-    portfolios TEXT NOT NULL -- JSON array
-  );
-
-  CREATE TABLE IF NOT EXISTS referral_codes (
-    code TEXT PRIMARY KEY,
-    discount INTEGER DEFAULT 500,
-    label TEXT DEFAULT 'Referral Discount',
-    active INTEGER DEFAULT 1,
-    usage_count INTEGER DEFAULT 0,
-    protected INTEGER DEFAULT 0
-  );
-
-  CREATE TABLE IF NOT EXISTS registrations (
-    id TEXT PRIMARY KEY,
-    reference_id TEXT UNIQUE NOT NULL,
-    full_name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    school TEXT DEFAULT '',
-    student_class TEXT DEFAULT '',
-    city TEXT DEFAULT '',
-    experience TEXT DEFAULT '',
-    awards TEXT DEFAULT '',
-    is_delegation INTEGER DEFAULT 0,
-    delegation_size INTEGER,
-    heard_from TEXT DEFAULT '',
-    preference1 TEXT DEFAULT '{}', -- JSON
-    preference2 TEXT DEFAULT '{}', -- JSON
-    preference3 TEXT DEFAULT '{}', -- JSON
-    referral_code TEXT DEFAULT '',
-    applied_referral TEXT,
-    fee INTEGER DEFAULT 1700,
-    fee_tier TEXT DEFAULT 'Standard',
-    payment_status TEXT DEFAULT 'pending',
-    payment_screenshot TEXT DEFAULT '',
-    id_card TEXT DEFAULT '',
-    accepted_terms INTEGER DEFAULT 1,
-    admin_note TEXT DEFAULT '',
-    allotted_committee TEXT DEFAULT '',
-    allotted_portfolio TEXT DEFAULT '',
-    created_at TEXT NOT NULL,
-    email_status TEXT DEFAULT '{"organizer":false,"delegate":false}' -- JSON
-  );
-
-  CREATE TABLE IF NOT EXISTS db_metadata (
-    key TEXT PRIMARY KEY,
-    value TEXT NOT NULL
-  );
-`);
-
-// Add protected column to referral_codes if it doesn't exist yet (migration)
-try {
-  db.exec(`ALTER TABLE referral_codes ADD COLUMN protected INTEGER DEFAULT 0;`);
-} catch (e) {
-  // Ignore if column already exists
-}
-
-try {
-  db.exec(`ALTER TABLE registrations ADD COLUMN student_class TEXT DEFAULT '';`);
-} catch (e) {
-  // Ignore if column already exists
+if (isCloudDb) {
+  console.log(`[DB] Connecting to Turso Cloud Database: ${TURSO_URL}`);
+  dbClient = createClient({
+    url: TURSO_URL,
+    authToken: TURSO_AUTH_TOKEN,
+  });
+  dbType = "Turso Cloud (libSQL)";
+} else {
+  const DB_PATH = path.join(DATA_DIR, "paramount_mun.db");
+  console.log(`[DB] Opening local SQLite file at: ${DB_PATH}`);
+  dbClient = createClient({
+    url: `file:${DB_PATH}`,
+  });
+  dbType = "Local SQLite (file)";
 }
 
 // ----------------------------- Seed Data -----------------------------
@@ -174,149 +113,173 @@ const DEFAULT_COMMITTEES = [
   },
 ];
 
-// The permanent protected referral code. MUST NEVER be regenerated, overwritten, or deleted.
-// Uses INSERT OR IGNORE so it is only inserted once and never overwrites existing data.
 const PERMANENT_REFERRAL_CODES = [
   { code: "PARAMOUNT200", discount: 200, label: "Paramount Ambassador Discount", active: 1, protected: 1 },
 ];
 
-// ----------------------------- Idempotent Seed (runs only once per fresh database) -----------------------------
-function seedDatabase() {
-  // Check if this database has already been seeded using a sentinel record.
-  // If the sentinel exists, we NEVER re-seed — even if individual tables look empty.
-  const alreadySeeded = db.prepare("SELECT value FROM db_metadata WHERE key = 'seeded_at'").get();
+// ----------------------------- Schema & Seed Initialization -----------------------------
+let isInitialized = false;
+let initPromise = null;
 
-  if (!alreadySeeded) {
-    // Fresh database — seed committees from committees.json if it exists, else from DEFAULT_COMMITTEES
-    console.log(`[DB SEED] Fresh database detected. Running initial seed. Path: ${DB_PATH}`);
-    const commCount = db.prepare("SELECT COUNT(*) as count FROM committees").get().count;
-    if (commCount === 0) {
-      const jsonFile = path.join(DATA_DIR, "committees.json");
-      let initialList = DEFAULT_COMMITTEES;
-      if (fs.existsSync(jsonFile)) {
-        try {
-          const parsed = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            initialList = parsed;
-            console.log(`[DB SEED] Using committees.json as seed source (${parsed.length} committees)`);
-          }
-        } catch (e) {
-          console.error("[DB SEED] committees.json parse error, falling back to defaults:", e.message);
-        }
-      } else {
-        console.log("[DB SEED] committees.json not found, using built-in defaults");
-      }
+async function initDatabase() {
+  if (isInitialized) return;
+  if (initPromise) return initPromise;
 
-      const insertComm = db.prepare(`
-        INSERT INTO committees (id, slug, name, full_name, agenda, tag, chair, eb, difficulty, handbook_link, order_num, portfolios)
-        VALUES (@id, @slug, @name, @full_name, @agenda, @tag, @chair, @eb, @difficulty, @handbook_link, @order_num, @portfolios)
-      `);
-      const insertMany = db.transaction((list) => {
-        for (const c of list) {
-          insertComm.run({
-            id: c.id || c.slug,
-            slug: c.slug,
-            name: c.name,
-            full_name: c.full_name,
-            agenda: c.agenda,
-            tag: c.tag || "",
-            chair: c.chair || "TBA",
-            eb: c.eb || "TBA",
-            difficulty: c.difficulty || "All levels",
-            handbook_link: c.handbook_link || "",
-            order_num: c.order || c.order_num || 0,
-            portfolios: typeof c.portfolios === "string" ? c.portfolios : JSON.stringify(c.portfolios || []),
-          });
-        }
-      });
-      insertMany(initialList);
-      console.log(`[DB SEED] Committees seeded (${initialList.length} committees)`);
+  initPromise = (async () => {
+    // 1. Schema setup
+    await dbClient.batch([
+      `CREATE TABLE IF NOT EXISTS committees (
+        id TEXT PRIMARY KEY,
+        slug TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        full_name TEXT NOT NULL,
+        agenda TEXT NOT NULL,
+        tag TEXT DEFAULT '',
+        chair TEXT DEFAULT 'TBA',
+        eb TEXT DEFAULT 'TBA',
+        difficulty TEXT DEFAULT 'Beginner Friendly',
+        handbook_link TEXT DEFAULT '',
+        order_num INTEGER DEFAULT 0,
+        portfolios TEXT NOT NULL -- JSON array
+      );`,
+      `CREATE TABLE IF NOT EXISTS referral_codes (
+        code TEXT PRIMARY KEY,
+        discount INTEGER DEFAULT 500,
+        label TEXT DEFAULT 'Referral Discount',
+        active INTEGER DEFAULT 1,
+        usage_count INTEGER DEFAULT 0,
+        protected INTEGER DEFAULT 0
+      );`,
+      `CREATE TABLE IF NOT EXISTS registrations (
+        id TEXT PRIMARY KEY,
+        reference_id TEXT UNIQUE NOT NULL,
+        full_name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        school TEXT DEFAULT '',
+        student_class TEXT DEFAULT '',
+        city TEXT DEFAULT '',
+        experience TEXT DEFAULT '',
+        awards TEXT DEFAULT '',
+        is_delegation INTEGER DEFAULT 0,
+        delegation_size INTEGER,
+        heard_from TEXT DEFAULT '',
+        preference1 TEXT DEFAULT '{}', -- JSON
+        preference2 TEXT DEFAULT '{}', -- JSON
+        preference3 TEXT DEFAULT '{}', -- JSON
+        referral_code TEXT DEFAULT '',
+        applied_referral TEXT,
+        fee INTEGER DEFAULT 1700,
+        fee_tier TEXT DEFAULT 'Standard',
+        payment_status TEXT DEFAULT 'pending',
+        payment_screenshot TEXT DEFAULT '',
+        id_card TEXT DEFAULT '',
+        accepted_terms INTEGER DEFAULT 1,
+        admin_note TEXT DEFAULT '',
+        allotted_committee TEXT DEFAULT '',
+        allotted_portfolio TEXT DEFAULT '',
+        created_at TEXT NOT NULL,
+        email_status TEXT DEFAULT '{"organizer":false,"delegate":false}' -- JSON
+      );`,
+      `CREATE TABLE IF NOT EXISTS db_metadata (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );`,
+    ]);
+
+    // Migrations
+    try {
+      await dbClient.execute(`ALTER TABLE referral_codes ADD COLUMN protected INTEGER DEFAULT 0;`);
+    } catch (e) {
+      // Column exists
+    }
+    try {
+      await dbClient.execute(`ALTER TABLE registrations ADD COLUMN student_class TEXT DEFAULT '';`);
+    } catch (e) {
+      // Column exists
     }
 
-    // Write the sentinel so we NEVER re-seed this database again
-    db.prepare("INSERT OR REPLACE INTO db_metadata (key, value) VALUES ('seeded_at', ?)").run(new Date().toISOString());
-    console.log(`[DB SEED] Seed sentinel written. This database will not be re-seeded on future restarts.`);
-  } else {
-    console.log(`[DB] Database already seeded at ${alreadySeeded.value}. Skipping seed.`);
-  }
-
-  // ------------------------------------------------------------------
-  // ALWAYS run this on every startup (regardless of seed state):
-  // Ensure the permanent protected referral code exists.
-  // INSERT OR IGNORE = only inserts if missing, NEVER overwrites.
-  // ------------------------------------------------------------------
-  const insertProtected = db.prepare(`
-    INSERT OR IGNORE INTO referral_codes (code, discount, label, active, usage_count, protected)
-    VALUES (@code, @discount, @label, @active, 0, @protected)
-  `);
-  for (const pc of PERMANENT_REFERRAL_CODES) {
-    insertProtected.run(pc);
-  }
-
-  // Also ensure the protected flag is set even if the row already existed without it
-  db.prepare("UPDATE referral_codes SET protected = 1 WHERE code = 'PARAMOUNT200'").run();
-
-  console.log(`[DB] Permanent code PARAMOUNT200 ensured in referral_codes (INSERT OR IGNORE — existing value preserved).`);
-
-  // Always sync the JSON fallback files from current DB state on startup.
-  // This ensures committees.json and referral_codes.json always reflect the latest DB,
-  // so if a disaster recovery re-seed ever happens, it restores the latest manually saved state.
-  persistCommitteesJson();
-  persistReferralCodesJson();
-  console.log(`[DB] Synced committees.json and referral_codes.json from live DB state.`);
-}
-
-seedDatabase();
-
-// ----------------------------- Helper: Persist committees.json after any admin change -----------------------------
-// This ensures that if the DB ever needs to be re-seeded from the JSON file,
-// it restores the LATEST manually saved state — not a stale committed version.
-function persistCommitteesJson() {
-  try {
-    const rows = db.prepare("SELECT * FROM committees ORDER BY order_num ASC").all();
-    const committees = rows.map((row) => {
-      const portfolios = JSON.parse(row.portfolios || "[]");
-      return {
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        full_name: row.full_name,
-        agenda: row.agenda,
-        tag: row.tag || "",
-        chair: row.chair || "TBA",
-        eb: row.eb || "TBA",
-        difficulty: row.difficulty || "All levels",
-        handbook_link: row.handbook_link || "",
-        order: row.order_num,
-        portfolios,
-      };
+    // 2. Check if already seeded
+    const alreadySeededRes = await dbClient.execute({
+      sql: "SELECT value FROM db_metadata WHERE key = 'seeded_at'",
+      args: [],
     });
-    fs.writeFileSync(path.join(DATA_DIR, "committees.json"), JSON.stringify(committees, null, 2), "utf8");
-  } catch (e) {
-    console.error("[DB] Warning: Could not persist committees.json:", e.message);
-  }
+    const alreadySeeded = alreadySeededRes.rows[0];
+
+    if (!alreadySeeded) {
+      console.log(`[DB SEED] Fresh database detected (${dbType}). Running initial seed.`);
+      const countRes = await dbClient.execute("SELECT COUNT(*) as count FROM committees");
+      const commCount = Number(countRes.rows[0]?.count || 0);
+
+      if (commCount === 0) {
+        const jsonFile = path.join(DATA_DIR, "committees.json");
+        let initialList = DEFAULT_COMMITTEES;
+        if (fs.existsSync(jsonFile)) {
+          try {
+            const parsed = JSON.parse(fs.readFileSync(jsonFile, "utf8"));
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              initialList = parsed;
+              console.log(`[DB SEED] Using committees.json as seed source (${parsed.length} committees)`);
+            }
+          } catch (e) {
+            console.error("[DB SEED] committees.json parse error, using defaults:", e.message);
+          }
+        }
+
+        const stmts = initialList.map((c) => ({
+          sql: `INSERT INTO committees (id, slug, name, full_name, agenda, tag, chair, eb, difficulty, handbook_link, order_num, portfolios)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [
+            c.id || c.slug,
+            c.slug,
+            c.name,
+            c.full_name,
+            c.agenda,
+            c.tag || "",
+            c.chair || "TBA",
+            c.eb || "TBA",
+            c.difficulty || "All levels",
+            c.handbook_link || "",
+            c.order || c.order_num || 0,
+            typeof c.portfolios === "string" ? c.portfolios : JSON.stringify(c.portfolios || []),
+          ],
+        }));
+
+        await dbClient.batch(stmts);
+        console.log(`[DB SEED] Committees seeded (${initialList.length} committees)`);
+      }
+
+      await dbClient.execute({
+        sql: "INSERT OR REPLACE INTO db_metadata (key, value) VALUES ('seeded_at', ?)",
+        args: [new Date().toISOString()],
+      });
+      console.log(`[DB SEED] Seed sentinel written.`);
+    } else {
+      console.log(`[DB] Database already seeded at ${alreadySeeded.value}. Skipping seed.`);
+    }
+
+    // Always ensure permanent referral codes exist without overwriting
+    for (const pc of PERMANENT_REFERRAL_CODES) {
+      await dbClient.execute({
+        sql: `INSERT OR IGNORE INTO referral_codes (code, discount, label, active, usage_count, protected)
+              VALUES (?, ?, ?, ?, 0, ?)`,
+        args: [pc.code, pc.discount, pc.label, pc.active, pc.protected],
+      });
+    }
+
+    await dbClient.execute({
+      sql: "UPDATE referral_codes SET protected = 1 WHERE code = 'PARAMOUNT200'",
+      args: [],
+    });
+
+    isInitialized = true;
+    console.log(`[DB] Database initialized successfully. Mode: ${dbType}`);
+  })();
+
+  return initPromise;
 }
 
-// ----------------------------- Helper: Persist referral_codes.json after any admin change -----------------------------
-function persistReferralCodesJson() {
-  try {
-    const rows = db.prepare("SELECT * FROM referral_codes ORDER BY code ASC").all();
-    const codes = rows.map((r) => ({
-      code: r.code,
-      discount: r.discount,
-      label: r.label,
-      active: !!r.active,
-      usage_count: r.usage_count,
-      protected: !!r.protected,
-    }));
-    fs.writeFileSync(path.join(DATA_DIR, "referral_codes.json"), JSON.stringify(codes, null, 2), "utf8");
-  } catch (e) {
-    console.error("[DB] Warning: Could not persist referral_codes.json:", e.message);
-  }
-}
-
-// ----------------------------- Data Access Helpers -----------------------------
-
+// ----------------------------- Formatters -----------------------------
 function formatCommitteeRow(row) {
   if (!row) return null;
   const portfolios = JSON.parse(row.portfolios || "[]");
@@ -352,20 +315,39 @@ function formatRegistrationRow(row) {
   };
 }
 
+// ----------------------------- Async DB Helpers -----------------------------
 const dbHelpers = {
+  getDbInfo() {
+    return {
+      type: dbType,
+      isCloud: isCloudDb,
+      url: isCloudDb ? TURSO_URL.replace(/:[^:@]+@/, ":***@") : "local file",
+    };
+  },
+
+  async ensureReady() {
+    await initDatabase();
+  },
+
   // Committees
-  getCommittees() {
-    const rows = db.prepare("SELECT * FROM committees ORDER BY order_num ASC").all();
-    return rows.map(formatCommitteeRow);
+  async getCommittees() {
+    await initDatabase();
+    const res = await dbClient.execute("SELECT * FROM committees ORDER BY order_num ASC");
+    return res.rows.map(formatCommitteeRow);
   },
 
-  getCommitteeBySlug(slug) {
-    const row = db.prepare("SELECT * FROM committees WHERE slug = ?").get(slug);
-    return formatCommitteeRow(row);
+  async getCommitteeBySlug(slug) {
+    await initDatabase();
+    const res = await dbClient.execute({
+      sql: "SELECT * FROM committees WHERE slug = ?",
+      args: [slug],
+    });
+    return formatCommitteeRow(res.rows[0]);
   },
 
-  updateCommittee(slug, data) {
-    const existing = this.getCommitteeBySlug(slug);
+  async updateCommittee(slug, data) {
+    await initDatabase();
+    const existing = await this.getCommitteeBySlug(slug);
     if (!existing) return null;
 
     const chair = data.chair !== undefined ? data.chair : existing.chair;
@@ -376,22 +358,19 @@ const dbHelpers = {
 
     console.log(`[DB WRITE] updateCommittee slug=${slug} chair="${chair}" eb="${eb}" difficulty="${difficulty}" at ${new Date().toISOString()}`);
 
-    db.prepare(`
-      UPDATE committees 
-      SET chair = ?, eb = ?, difficulty = ?, agenda = ?, handbook_link = ?
-      WHERE slug = ?
-    `).run(chair, eb, difficulty, agenda, handbook_link, slug);
+    await dbClient.execute({
+      sql: `UPDATE committees 
+            SET chair = ?, eb = ?, difficulty = ?, agenda = ?, handbook_link = ?
+            WHERE slug = ?`,
+      args: [chair, eb, difficulty, agenda, handbook_link, slug],
+    });
 
-    const updated = this.getCommitteeBySlug(slug);
-
-    // Persist updated state to committees.json so the seed file is always current
-    persistCommitteesJson();
-
-    return updated;
+    return await this.getCommitteeBySlug(slug);
   },
 
-  updatePortfolio(slug, portfolioName, newStatus, delegate = null) {
-    const committee = this.getCommitteeBySlug(slug);
+  async updatePortfolio(slug, portfolioName, newStatus, delegate = null) {
+    await initDatabase();
+    const committee = await this.getCommitteeBySlug(slug);
     if (!committee) return null;
 
     let portfolios = committee.portfolios;
@@ -406,20 +385,19 @@ const dbHelpers = {
 
     console.log(`[DB WRITE] updatePortfolio slug=${slug} portfolio="${portfolioName}" status="${newStatus}" delegate="${delegate}" at ${new Date().toISOString()}`);
 
-    db.prepare("UPDATE committees SET portfolios = ? WHERE slug = ?").run(JSON.stringify(portfolios), slug);
+    await dbClient.execute({
+      sql: "UPDATE committees SET portfolios = ? WHERE slug = ?",
+      args: [JSON.stringify(portfolios), slug],
+    });
 
-    const updated = this.getCommitteeBySlug(slug);
-
-    // Persist updated state to committees.json
-    persistCommitteesJson();
-
-    return updated;
+    return await this.getCommitteeBySlug(slug);
   },
 
   // Referral Codes
-  getReferralCodes() {
-    const rows = db.prepare("SELECT * FROM referral_codes ORDER BY code ASC").all();
-    return rows.map((r) => ({
+  async getReferralCodes() {
+    await initDatabase();
+    const res = await dbClient.execute("SELECT * FROM referral_codes ORDER BY code ASC");
+    return res.rows.map((r) => ({
       code: r.code,
       discount: r.discount,
       label: r.label,
@@ -429,8 +407,13 @@ const dbHelpers = {
     }));
   },
 
-  getReferralCode(code) {
-    const row = db.prepare("SELECT * FROM referral_codes WHERE code = ?").get((code || "").toUpperCase());
+  async getReferralCode(code) {
+    await initDatabase();
+    const res = await dbClient.execute({
+      sql: "SELECT * FROM referral_codes WHERE code = ?",
+      args: [(code || "").toUpperCase()],
+    });
+    const row = res.rows[0];
     if (!row) return null;
     return {
       code: row.code,
@@ -442,7 +425,8 @@ const dbHelpers = {
     };
   },
 
-  createReferralCode(data) {
+  async createReferralCode(data) {
+    await initDatabase();
     const code = (data.code || "").trim().toUpperCase();
     const discount = Number(data.discount) || 500;
     const label = data.label || "Referral Discount";
@@ -450,18 +434,18 @@ const dbHelpers = {
 
     console.log(`[DB WRITE] createReferralCode code="${code}" discount=${discount} at ${new Date().toISOString()}`);
 
-    db.prepare(`
-      INSERT INTO referral_codes (code, discount, label, active, usage_count, protected)
-      VALUES (?, ?, ?, ?, 0, 0)
-    `).run(code, discount, label, active);
+    await dbClient.execute({
+      sql: `INSERT INTO referral_codes (code, discount, label, active, usage_count, protected)
+            VALUES (?, ?, ?, ?, 0, 0)`,
+      args: [code, discount, label, active],
+    });
 
-    const created = this.getReferralCode(code);
-    persistReferralCodesJson();
-    return created;
+    return await this.getReferralCode(code);
   },
 
-  updateReferralCode(code, data) {
-    const existing = this.getReferralCode(code);
+  async updateReferralCode(code, data) {
+    await initDatabase();
+    const existing = await this.getReferralCode(code);
     if (!existing) return null;
 
     const discount = data.discount !== undefined ? Number(data.discount) : existing.discount;
@@ -470,179 +454,196 @@ const dbHelpers = {
 
     console.log(`[DB WRITE] updateReferralCode code="${code}" discount=${discount} active=${active} at ${new Date().toISOString()}`);
 
-    db.prepare(`
-      UPDATE referral_codes
-      SET discount = ?, label = ?, active = ?
-      WHERE code = ?
-    `).run(discount, label, active, code.toUpperCase());
+    await dbClient.execute({
+      sql: `UPDATE referral_codes
+            SET discount = ?, label = ?, active = ?
+            WHERE code = ?`,
+      args: [discount, label, active, code.toUpperCase()],
+    });
 
-    const updated = this.getReferralCode(code);
-    persistReferralCodesJson();
-    return updated;
+    return await this.getReferralCode(code);
   },
 
-  deleteReferralCode(code) {
+  async deleteReferralCode(code) {
+    await initDatabase();
     const upper = (code || "").toUpperCase();
-    // SAFETY: Never delete a protected referral code
-    const existing = this.getReferralCode(upper);
+    const existing = await this.getReferralCode(upper);
     if (existing && existing.protected) {
-      console.warn(`[DB WRITE] BLOCKED deleteReferralCode for protected code "${upper}" at ${new Date().toISOString()}`);
-      return { changes: 0, blocked: true };
+      console.warn(`[DB WRITE] BLOCKED deleteReferralCode for protected code "${upper}"`);
+      return { rowsAffected: 0, blocked: true };
     }
+
     console.log(`[DB WRITE] deleteReferralCode code="${upper}" at ${new Date().toISOString()}`);
-    const result = db.prepare("DELETE FROM referral_codes WHERE code = ? AND protected = 0").run(upper);
-    persistReferralCodesJson();
-    return result;
+    const res = await dbClient.execute({
+      sql: "DELETE FROM referral_codes WHERE code = ? AND protected = 0",
+      args: [upper],
+    });
+    return { changes: res.rowsAffected };
   },
 
-  incrementReferralUsage(code) {
-    return db.prepare("UPDATE referral_codes SET usage_count = usage_count + 1 WHERE code = ?").run((code || "").toUpperCase());
+  async incrementReferralUsage(code) {
+    await initDatabase();
+    return await dbClient.execute({
+      sql: "UPDATE referral_codes SET usage_count = usage_count + 1 WHERE code = ?",
+      args: [(code || "").toUpperCase()],
+    });
   },
 
   // Registrations
-  getRegistrations() {
-    const rows = db.prepare("SELECT * FROM registrations ORDER BY created_at DESC").all();
-    return rows.map(formatRegistrationRow);
+  async getRegistrations() {
+    await initDatabase();
+    const res = await dbClient.execute("SELECT * FROM registrations ORDER BY created_at DESC");
+    return res.rows.map(formatRegistrationRow);
   },
 
-  getRegistration(idOrRef) {
-    const row = db.prepare("SELECT * FROM registrations WHERE id = ? OR reference_id = ?").get(idOrRef, idOrRef);
-    return formatRegistrationRow(row);
+  async getRegistration(idOrRef) {
+    await initDatabase();
+    const res = await dbClient.execute({
+      sql: "SELECT * FROM registrations WHERE id = ? OR reference_id = ?",
+      args: [idOrRef, idOrRef],
+    });
+    return formatRegistrationRow(res.rows[0]);
   },
 
-  createRegistration(data) {
+  async createRegistration(data) {
+    await initDatabase();
     console.log(`[DB WRITE] createRegistration id="${data.id}" reference_id="${data.reference_id}" name="${data.full_name}" email="${data.email}" at ${new Date().toISOString()}`);
 
-    const stmt = db.prepare(`
-      INSERT INTO registrations (
+    await dbClient.execute({
+      sql: `INSERT INTO registrations (
         id, reference_id, full_name, email, phone, school, student_class, city, experience, awards,
         is_delegation, delegation_size, heard_from, preference1, preference2, preference3,
         referral_code, applied_referral, fee, fee_tier, payment_status, payment_screenshot,
         id_card, accepted_terms, admin_note, allotted_committee, allotted_portfolio, created_at, email_status
       ) VALUES (
-        @id, @reference_id, @full_name, @email, @phone, @school, @student_class, @city, @experience, @awards,
-        @is_delegation, @delegation_size, @heard_from, @preference1, @preference2, @preference3,
-        @referral_code, @applied_referral, @fee, @fee_tier, @payment_status, @payment_screenshot,
-        @id_card, @accepted_terms, @admin_note, @allotted_committee, @allotted_portfolio, @created_at, @email_status
-      )
-    `);
-
-    stmt.run({
-      id: data.id,
-      reference_id: data.reference_id,
-      full_name: data.full_name,
-      email: data.email,
-      phone: data.phone,
-      school: data.school || "",
-      student_class: data.student_class || "",
-      city: data.city || "",
-      experience: data.experience || "",
-      awards: data.awards || "",
-      is_delegation: data.is_delegation ? 1 : 0,
-      delegation_size: data.delegation_size || null,
-      heard_from: data.heard_from || "",
-      preference1: JSON.stringify(data.preference1 || {}),
-      preference2: JSON.stringify(data.preference2 || {}),
-      preference3: JSON.stringify(data.preference3 || {}),
-      referral_code: data.referral_code || "",
-      applied_referral: data.applied_referral || null,
-      fee: data.fee || 1700,
-      fee_tier: data.fee_tier || "Standard",
-      payment_status: data.payment_status || "pending",
-      payment_screenshot: data.payment_screenshot || "",
-      id_card: data.id_card || "",
-      accepted_terms: data.accepted_terms ? 1 : 0,
-      admin_note: data.admin_note || "",
-      allotted_committee: data.allotted_committee || "",
-      allotted_portfolio: data.allotted_portfolio || "",
-      created_at: data.created_at || new Date().toISOString(),
-      email_status: JSON.stringify(data.email_status || { organizer: false, delegate: false }),
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?
+      )`,
+      args: [
+        data.id,
+        data.reference_id,
+        data.full_name,
+        data.email,
+        data.phone,
+        data.school || "",
+        data.student_class || "",
+        data.city || "",
+        data.experience || "",
+        data.awards || "",
+        data.is_delegation ? 1 : 0,
+        data.delegation_size || null,
+        data.heard_from || "",
+        JSON.stringify(data.preference1 || {}),
+        JSON.stringify(data.preference2 || {}),
+        JSON.stringify(data.preference3 || {}),
+        data.referral_code || "",
+        data.applied_referral || null,
+        data.fee || 1700,
+        data.fee_tier || "Standard",
+        data.payment_status || "pending",
+        data.payment_screenshot || "",
+        data.id_card || "",
+        data.accepted_terms ? 1 : 0,
+        data.admin_note || "",
+        data.allotted_committee || "",
+        data.allotted_portfolio || "",
+        data.created_at || new Date().toISOString(),
+        JSON.stringify(data.email_status || { organizer: false, delegate: false }),
+      ],
     });
 
-    return this.getRegistration(data.id);
+    return await this.getRegistration(data.id);
   },
 
-  updateRegistration(idOrRef, updates) {
-    const existing = this.getRegistration(idOrRef);
+  async updateRegistration(idOrRef, updates) {
+    await initDatabase();
+    const existing = await this.getRegistration(idOrRef);
     if (!existing) return null;
 
     console.log(`[DB WRITE] updateRegistration id="${existing.id}" ref="${existing.reference_id}" fields=${JSON.stringify(Object.keys(updates))} at ${new Date().toISOString()}`);
 
-    // Merge: only update the fields explicitly passed in 'updates', preserve everything else
     const merged = { ...existing, ...updates };
 
-    db.prepare(`
-      UPDATE registrations SET
-        full_name = @full_name,
-        email = @email,
-        phone = @phone,
-        school = @school,
-        student_class = @student_class,
-        city = @city,
-        experience = @experience,
-        awards = @awards,
-        is_delegation = @is_delegation,
-        delegation_size = @delegation_size,
-        heard_from = @heard_from,
-        preference1 = @preference1,
-        preference2 = @preference2,
-        preference3 = @preference3,
-        referral_code = @referral_code,
-        applied_referral = @applied_referral,
-        fee = @fee,
-        fee_tier = @fee_tier,
-        payment_status = @payment_status,
-        payment_screenshot = @payment_screenshot,
-        id_card = @id_card,
-        admin_note = @admin_note,
-        allotted_committee = @allotted_committee,
-        allotted_portfolio = @allotted_portfolio,
-        email_status = @email_status
-      WHERE id = @id OR reference_id = @id
-    `).run({
-      id: existing.id,
-      full_name: merged.full_name,
-      email: merged.email,
-      phone: merged.phone,
-      school: merged.school || "",
-      student_class: merged.student_class || "",
-      city: merged.city || "",
-      experience: merged.experience || "",
-      awards: merged.awards || "",
-      is_delegation: merged.is_delegation ? 1 : 0,
-      delegation_size: merged.delegation_size || null,
-      heard_from: merged.heard_from || "",
-      preference1: typeof merged.preference1 === "object" ? JSON.stringify(merged.preference1) : merged.preference1,
-      preference2: typeof merged.preference2 === "object" ? JSON.stringify(merged.preference2) : merged.preference2,
-      preference3: typeof merged.preference3 === "object" ? JSON.stringify(merged.preference3) : merged.preference3,
-      referral_code: merged.referral_code || "",
-      applied_referral: merged.applied_referral || null,
-      fee: merged.fee || 1700,
-      fee_tier: merged.fee_tier || "Standard",
-      payment_status: merged.payment_status || "pending",
-      payment_screenshot: merged.payment_screenshot || "",
-      id_card: merged.id_card || "",
-      admin_note: merged.admin_note || "",
-      allotted_committee: merged.allotted_committee || "",
-      allotted_portfolio: merged.allotted_portfolio || "",
-      email_status: typeof merged.email_status === "object" ? JSON.stringify(merged.email_status) : merged.email_status,
+    await dbClient.execute({
+      sql: `UPDATE registrations SET
+        full_name = ?,
+        email = ?,
+        phone = ?,
+        school = ?,
+        student_class = ?,
+        city = ?,
+        experience = ?,
+        awards = ?,
+        is_delegation = ?,
+        delegation_size = ?,
+        heard_from = ?,
+        preference1 = ?,
+        preference2 = ?,
+        preference3 = ?,
+        referral_code = ?,
+        applied_referral = ?,
+        fee = ?,
+        fee_tier = ?,
+        payment_status = ?,
+        payment_screenshot = ?,
+        id_card = ?,
+        admin_note = ?,
+        allotted_committee = ?,
+        allotted_portfolio = ?,
+        email_status = ?
+      WHERE id = ? OR reference_id = ?`,
+      args: [
+        merged.full_name,
+        merged.email,
+        merged.phone,
+        merged.school || "",
+        merged.student_class || "",
+        merged.city || "",
+        merged.experience || "",
+        merged.awards || "",
+        merged.is_delegation ? 1 : 0,
+        merged.delegation_size || null,
+        merged.heard_from || "",
+        typeof merged.preference1 === "object" ? JSON.stringify(merged.preference1) : merged.preference1,
+        typeof merged.preference2 === "object" ? JSON.stringify(merged.preference2) : merged.preference2,
+        typeof merged.preference3 === "object" ? JSON.stringify(merged.preference3) : merged.preference3,
+        merged.referral_code || "",
+        merged.applied_referral || null,
+        merged.fee || 1700,
+        merged.fee_tier || "Standard",
+        merged.payment_status || "pending",
+        merged.payment_screenshot || "",
+        merged.id_card || "",
+        merged.admin_note || "",
+        merged.allotted_committee || "",
+        merged.allotted_portfolio || "",
+        typeof merged.email_status === "object" ? JSON.stringify(merged.email_status) : merged.email_status,
+        existing.id,
+        existing.id,
+      ],
     });
 
-    return this.getRegistration(existing.id);
+    return await this.getRegistration(existing.id);
   },
 
-  deleteRegistration(idOrRef) {
-    const existing = this.getRegistration(idOrRef);
+  async deleteRegistration(idOrRef) {
+    await initDatabase();
+    const existing = await this.getRegistration(idOrRef);
     if (existing) {
       console.log(`[DB WRITE] deleteRegistration id="${existing.id}" ref="${existing.reference_id}" name="${existing.full_name}" at ${new Date().toISOString()}`);
-    } else {
-      console.log(`[DB WRITE] deleteRegistration attempted for unknown id/ref="${idOrRef}" at ${new Date().toISOString()}`);
     }
-    return db.prepare("DELETE FROM registrations WHERE id = ? OR reference_id = ?").run(idOrRef, idOrRef);
+    const res = await dbClient.execute({
+      sql: "DELETE FROM registrations WHERE id = ? OR reference_id = ?",
+      args: [idOrRef, idOrRef],
+    });
+    return { changes: res.rowsAffected };
   },
 
-  getStats() {
-    const regs = this.getRegistrations();
+  async getStats() {
+    await initDatabase();
+    const regs = await this.getRegistrations();
     const total = regs.length;
     const verified = regs.filter((r) => r.payment_status === "verified").length;
     const pending = regs.filter((r) => r.payment_status === "pending").length;
@@ -660,11 +661,12 @@ const dbHelpers = {
       verified_payments: verified,
       pending_payments: pending,
       total_revenue,
+      database: this.getDbInfo(),
     };
   },
 
-  generateAllotmentsCsv() {
-    const regs = this.getRegistrations();
+  async generateAllotmentsCsv() {
+    const regs = await this.getRegistrations();
     const headers = ["Reference ID", "Student Name", "Phone", "Email", "School", "Class", "Committee", "Country / Political Leader (Portfolio)"];
     const lines = [headers.join(",")];
 
@@ -687,8 +689,8 @@ const dbHelpers = {
     return lines.join("\n");
   },
 
-  generateRegistrationsCsv() {
-    const regs = this.getRegistrations();
+  async generateRegistrationsCsv() {
+    const regs = await this.getRegistrations();
     const headers = [
       "Registration ID",
       "Student Name",
@@ -748,9 +750,203 @@ const dbHelpers = {
 
     return lines.join("\n");
   },
+
+  // ----------------------------- Backup & Restore -----------------------------
+  async exportBackupData() {
+    await initDatabase();
+    const commRes = await dbClient.execute("SELECT * FROM committees ORDER BY order_num ASC");
+    const refRes = await dbClient.execute("SELECT * FROM referral_codes ORDER BY code ASC");
+    const regRes = await dbClient.execute("SELECT * FROM registrations ORDER BY created_at DESC");
+
+    return {
+      version: "1.0",
+      exported_at: new Date().toISOString(),
+      database_type: dbType,
+      committees: commRes.rows.map((row) => ({
+        ...row,
+        portfolios: JSON.parse(row.portfolios || "[]"),
+      })),
+      referral_codes: refRes.rows.map((r) => ({
+        code: r.code,
+        discount: r.discount,
+        label: r.label,
+        active: Number(r.active),
+        usage_count: Number(r.usage_count || 0),
+        protected: Number(r.protected || 0),
+      })),
+      registrations: regRes.rows.map((r) => ({
+        ...r,
+        preference1: JSON.parse(r.preference1 || "{}"),
+        preference2: JSON.parse(r.preference2 || "{}"),
+        preference3: JSON.parse(r.preference3 || "{}"),
+        email_status: JSON.parse(r.email_status || "{}"),
+      })),
+    };
+  },
+
+  async restoreBackupData(backup) {
+    await initDatabase();
+    if (!backup || typeof backup !== "object") {
+      throw new Error("Invalid backup payload format");
+    }
+
+    const stmts = [];
+
+    // 1. Restore committees
+    if (Array.isArray(backup.committees) && backup.committees.length > 0) {
+      for (const c of backup.committees) {
+        stmts.push({
+          sql: `INSERT INTO committees (id, slug, name, full_name, agenda, tag, chair, eb, difficulty, handbook_link, order_num, portfolios)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(slug) DO UPDATE SET
+                  name=excluded.name,
+                  full_name=excluded.full_name,
+                  agenda=excluded.agenda,
+                  tag=excluded.tag,
+                  chair=excluded.chair,
+                  eb=excluded.eb,
+                  difficulty=excluded.difficulty,
+                  handbook_link=excluded.handbook_link,
+                  order_num=excluded.order_num,
+                  portfolios=excluded.portfolios`,
+          args: [
+            c.id || c.slug,
+            c.slug,
+            c.name,
+            c.full_name,
+            c.agenda,
+            c.tag || "",
+            c.chair || "TBA",
+            c.eb || "TBA",
+            c.difficulty || "All levels",
+            c.handbook_link || "",
+            c.order_num || c.order || 0,
+            typeof c.portfolios === "string" ? c.portfolios : JSON.stringify(c.portfolios || []),
+          ],
+        });
+      }
+    }
+
+    // 2. Restore referral codes
+    if (Array.isArray(backup.referral_codes) && backup.referral_codes.length > 0) {
+      for (const rc of backup.referral_codes) {
+        stmts.push({
+          sql: `INSERT INTO referral_codes (code, discount, label, active, usage_count, protected)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(code) DO UPDATE SET
+                  discount=excluded.discount,
+                  label=excluded.label,
+                  active=excluded.active,
+                  usage_count=excluded.usage_count,
+                  protected=excluded.protected`,
+          args: [
+            rc.code.toUpperCase(),
+            Number(rc.discount) || 500,
+            rc.label || "Referral Discount",
+            rc.active ? 1 : 0,
+            Number(rc.usage_count) || 0,
+            rc.protected ? 1 : 0,
+          ],
+        });
+      }
+    }
+
+    // 3. Restore registrations
+    if (Array.isArray(backup.registrations) && backup.registrations.length > 0) {
+      for (const r of backup.registrations) {
+        stmts.push({
+          sql: `INSERT INTO registrations (
+            id, reference_id, full_name, email, phone, school, student_class, city, experience, awards,
+            is_delegation, delegation_size, heard_from, preference1, preference2, preference3,
+            referral_code, applied_referral, fee, fee_tier, payment_status, payment_screenshot,
+            id_card, accepted_terms, admin_note, allotted_committee, allotted_portfolio, created_at, email_status
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?
+          )
+          ON CONFLICT(reference_id) DO UPDATE SET
+            full_name=excluded.full_name,
+            email=excluded.email,
+            phone=excluded.phone,
+            school=excluded.school,
+            student_class=excluded.student_class,
+            city=excluded.city,
+            experience=excluded.experience,
+            awards=excluded.awards,
+            is_delegation=excluded.is_delegation,
+            delegation_size=excluded.delegation_size,
+            heard_from=excluded.heard_from,
+            preference1=excluded.preference1,
+            preference2=excluded.preference2,
+            preference3=excluded.preference3,
+            referral_code=excluded.referral_code,
+            applied_referral=excluded.applied_referral,
+            fee=excluded.fee,
+            fee_tier=excluded.fee_tier,
+            payment_status=excluded.payment_status,
+            payment_screenshot=excluded.payment_screenshot,
+            id_card=excluded.id_card,
+            admin_note=excluded.admin_note,
+            allotted_committee=excluded.allotted_committee,
+            allotted_portfolio=excluded.allotted_portfolio,
+            email_status=excluded.email_status`,
+          args: [
+            r.id,
+            r.reference_id,
+            r.full_name,
+            r.email,
+            r.phone,
+            r.school || "",
+            r.student_class || "",
+            r.city || "",
+            r.experience || "",
+            r.awards || "",
+            r.is_delegation ? 1 : 0,
+            r.delegation_size || null,
+            r.heard_from || "",
+            typeof r.preference1 === "object" ? JSON.stringify(r.preference1) : r.preference1,
+            typeof r.preference2 === "object" ? JSON.stringify(r.preference2) : r.preference2,
+            typeof r.preference3 === "object" ? JSON.stringify(r.preference3) : r.preference3,
+            r.referral_code || "",
+            r.applied_referral || null,
+            r.fee || 1700,
+            r.fee_tier || "Standard",
+            r.payment_status || "pending",
+            r.payment_screenshot || "",
+            r.id_card || "",
+            r.accepted_terms ? 1 : 0,
+            r.admin_note || "",
+            r.allotted_committee || "",
+            r.allotted_portfolio || "",
+            r.created_at || new Date().toISOString(),
+            typeof r.email_status === "object" ? JSON.stringify(r.email_status) : r.email_status,
+          ],
+        });
+      }
+    }
+
+    if (stmts.length > 0) {
+      await dbClient.batch(stmts);
+    }
+
+    return {
+      ok: true,
+      restored_committees: backup.committees ? backup.committees.length : 0,
+      restored_referral_codes: backup.referral_codes ? backup.referral_codes.length : 0,
+      restored_registrations: backup.registrations ? backup.registrations.length : 0,
+    };
+  },
 };
 
+// Initialize DB in background on module load
+initDatabase().catch((err) => {
+  console.error("[CRITICAL] Failed to initialize database:", err);
+});
+
 module.exports = {
-  db,
+  db: dbClient,
   dbHelpers,
+  initDatabase,
 };
