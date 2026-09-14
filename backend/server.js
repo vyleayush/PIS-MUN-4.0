@@ -506,6 +506,26 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Raw SMTP diagnostic
+  if (pathname === "/api/test-smtp-verify" && req.method === "GET") {
+    const user = process.env.GMAIL_USER || process.env.ADMIN_EMAIL || "paramountinternationalmun.26@gmail.com";
+    const pass = process.env.GMAIL_APP_PASSWORD || GMAIL_APP_PASSWORD;
+    const t = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user, pass },
+      connectionTimeout: 8000,
+    });
+    t.verify((err, success) => {
+      if (err) {
+        return sendJson(500, { ok: false, error: err.message, code: err.code });
+      }
+      return sendJson(200, { ok: true, success });
+    });
+    return;
+  }
+
   // GET /api/committees
   if (pathname === "/api/committees" && req.method === "GET") {
     const list = dbHelpers.getCommittees();
