@@ -356,14 +356,17 @@ function sendGmailEmail(to, subject, html, bcc = null) {
     }
 
     // Use port 465 SSL with direct connection to bypass cloud port 587 block
+    // Force IPv4 (family: 4) to prevent ENETUNREACH on Render's IPv6-limited network
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
       secure: true,
       auth: { user, pass },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
+      tls: { servername: "smtp.gmail.com" },
+      family: 4,
     });
 
     const mailOptions = {
