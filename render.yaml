@@ -22,6 +22,10 @@ services:
         value: paramountinternationalmun.26@gmail.com
       - key: GMAIL_APP_PASSWORD
         sync: false  # set manually in Render dashboard (16-char app password from Google)
+      - key: TURSO_DATABASE_URL
+        sync: false  # Turso Cloud DB connection URL
+      - key: TURSO_AUTH_TOKEN
+        sync: false  # Turso Cloud Auth Token
       - key: NODE_ENV
         value: production
       - key: DATA_DIR
