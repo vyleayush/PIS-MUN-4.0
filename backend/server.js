@@ -346,6 +346,24 @@ function sendResendEmail(to, subject, html) {
 
 function sendGmailEmail(to, subject, html, bcc = null) {
   return new Promise(async (resolve) => {
+    // ---- Strategy 1: Google Apps Script Email Relay (HTTPS — never blocked) ----
+    const relayUrl = process.env.EMAIL_RELAY_URL;
+    const relaySecret = process.env.EMAIL_RELAY_SECRET;
+    if (relayUrl && relaySecret) {
+      try {
+        console.log(`[EMAIL] Trying Apps Script relay for ${to}...`);
+        const relayResult = await sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret);
+        if (relayResult.ok) {
+          console.log(`[EMAIL SUCCESS] Email delivered via Apps Script relay to ${to}`);
+          return resolve({ ok: true, method: "apps-script-relay" });
+        }
+        console.error(`[EMAIL WARN] Apps Script relay failed for ${to}: ${relayResult.error}. Trying SMTP...`);
+      } catch (relayErr) {
+        console.error(`[EMAIL WARN] Apps Script relay exception for ${to}: ${relayErr.message}. Trying SMTP...`);
+      }
+    }
+
+    // ---- Strategy 2: Gmail SMTP (blocked on Render free tier, but works locally) ----
     const user = process.env.GMAIL_USER || process.env.ADMIN_EMAIL || "paramountinternationalmun.26@gmail.com";
     const pass = process.env.GMAIL_APP_PASSWORD || GMAIL_APP_PASSWORD;
 
@@ -355,8 +373,6 @@ function sendGmailEmail(to, subject, html, bcc = null) {
       return resolve(resendRes);
     }
 
-    // Use port 465 SSL with direct connection to bypass cloud port 587 block
-    // Force IPv4 (family: 4) to prevent ENETUNREACH on Render's IPv6-limited network
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
@@ -390,6 +406,79 @@ function sendGmailEmail(to, subject, html, bcc = null) {
         resolve({ ok: true, messageId: info.messageId });
       }
     });
+  });
+}
+
+// Send email via deployed Google Apps Script web app (HTTPS — bypasses SMTP port blocking)
+function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
+  return new Promise((resolve) => {
+    const https = require("https");
+    const postData = JSON.stringify({
+      secret: relaySecret,
+      to,
+      subject,
+      html,
+      bcc: bcc || undefined,
+      name: "Paramount MUN",
+    });
+
+    const url = new URL(relayUrl);
+    const req = https.request(
+      {
+        hostname: url.hostname,
+        path: url.pathname,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": Buffer.byteLength(postData),
+        },
+        timeout: 30000,
+      },
+      (res) => {
+        // Google Apps Script redirects (302) on POST responses — follow it
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          const redirectUrl = new URL(res.headers.location);
+          https.get(redirectUrl.href, { timeout: 15000 }, (redirectRes) => {
+            let body = "";
+            redirectRes.on("data", (chunk) => (body += chunk));
+            redirectRes.on("end", () => {
+              try {
+                const parsed = JSON.parse(body);
+                resolve(parsed);
+              } catch {
+                resolve({ ok: body.includes('"ok":true'), raw: body });
+              }
+            });
+          }).on("error", (err) => resolve({ ok: false, error: err.message }));
+          return;
+        }
+
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            try {
+              resolve(JSON.parse(body));
+            } catch {
+              resolve({ ok: true, raw: body });
+            }
+          } else {
+            console.error(`[RELAY ERROR] Status ${res.statusCode}: ${body}`);
+            resolve({ ok: false, error: `Status ${res.statusCode}: ${body}` });
+          }
+        });
+      }
+    );
+    req.on("error", (err) => {
+      console.error(`[RELAY ERROR] Request failed: ${err.message}`);
+      resolve({ ok: false, error: err.message });
+    });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ ok: false, error: "timeout" });
+    });
+    req.write(postData);
+    req.end();
   });
 }
 
