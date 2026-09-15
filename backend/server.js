@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
 const { dbHelpers } = require("./db");
 
 // Simple .env parser for Node backend
@@ -40,7 +42,7 @@ const SENDER_EMAIL = process.env.SENDER_EMAIL || "onboarding@resend.dev";
 const ORGANIZER_EMAIL = process.env.ORGANIZER_EMAIL || "paramountinternationalmun.26@gmail.com";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const BASE_FEE = 1700;
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "jhpdtlzwbteabkne";
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
 // ----------------------------- Email Templates -----------------------------
 
