@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionTemplate } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, MapPin, Sparkles, Compass, ShieldCheck, Flame, FileText } from "lucide-react";
+import { ArrowRight, MapPin, Sparkles, Compass, ShieldCheck, Flame, FileText, GraduationCap } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { Hero3DScene } from "@/components/Hero3DScene";
 import { HERO_PHOTOS } from "@/lib/assets";
@@ -161,6 +161,10 @@ export const Hero = () => {
             <span className="text-secondary-foreground/80 text-xs hidden sm:inline font-mono">
               Conference: 9 &amp; 10 Oct 2026
             </span>
+            <span className="text-secondary-foreground/60 text-xs hidden md:inline">|</span>
+            <span className="text-brass text-xs hidden md:inline font-mono">
+              For Classes 6th–12th
+            </span>
           </motion.div>
 
           {/* Script accent */}
@@ -225,9 +229,15 @@ export const Hero = () => {
               <span>Register Now — Chapter IV</span>
               <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
             </Link>
-            <div className="flex items-center gap-1.5 text-xs text-brass/90 font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
-              <span>Registration Deadline: <strong className="text-brass font-bold">30 September 2026</strong></span>
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-brass/90 font-mono">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
+                <span>Registration Deadline: <strong className="text-brass font-bold">30 September 2026</strong></span>
+              </div>
+              <span className="text-brass/40 hidden sm:inline">•</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-brass/15 border border-brass/30 text-brass font-medium">
+                For Classes 6th–12th
+              </span>
             </div>
           </motion.div>
 
@@ -265,6 +275,16 @@ export const Hero = () => {
               <div className="text-left">
                 <div className="mono-label text-muted-foreground text-[10px]">The Venue</div>
                 <div className="font-display text-xl sm:text-2xl text-foreground">Paramount International School</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 px-5 py-3 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-md hover:border-brass/50 transition-all">
+              <div className="w-8 h-8 rounded-lg bg-brass/10 flex items-center justify-center text-brass">
+                <GraduationCap size={18} />
+              </div>
+              <div className="text-left">
+                <div className="mono-label text-muted-foreground text-[10px]">Eligibility</div>
+                <div className="font-display text-xl sm:text-2xl text-foreground">Classes 6th–12th</div>
               </div>
             </div>
           </motion.div>

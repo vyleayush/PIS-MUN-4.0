@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, ShieldCheck, CheckCircle2, Copy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -286,8 +286,8 @@ export default function Register() {
                     <Field label="School / College" required>
                       <Input data-testid="reg-school" className={inputCls} value={f.school} onChange={(e) => set("school", e.target.value)} placeholder="Paramount International School" />
                     </Field>
-                    <Field label="Class" required>
-                      <Input data-testid="reg-class" className={inputCls} value={f.student_class} onChange={(e) => set("student_class", e.target.value)} placeholder="e.g. 11th, 12th" />
+                    <Field label="Class" required hint="Eligible for classes 6th to 12th">
+                      <Input data-testid="reg-class" className={inputCls} value={f.student_class} onChange={(e) => set("student_class", e.target.value)} placeholder="e.g. 9th, 11th (Classes 6th–12th)" />
                     </Field>
                     <Field label="City">
                       <Input data-testid="reg-city" className={inputCls} value={f.city} onChange={(e) => set("city", e.target.value)} placeholder="New Delhi" />
@@ -552,15 +552,37 @@ export default function Register() {
             <div className="mx-auto h-16 w-16 rounded-full bg-[#1A1710] border border-brass/60 flex items-center justify-center animate-pulse-gold">
               <CheckCircle2 className="text-brass" size={32} />
             </div>
-            <h1 className="font-display text-4xl text-foreground mt-5">You're registered.</h1>
-            <p className="mt-3 text-muted-foreground max-w-md mx-auto leading-relaxed">
-              We've received your registration and sent a confirmation to <span className="text-foreground font-medium">{f.email}</span>. Keep your reference ID handy.
+            <h1 className="font-display text-4xl text-foreground mt-5">You're registered!</h1>
+            <p className="mt-3 text-secondary-foreground/90 max-w-md mx-auto leading-relaxed">
+              We've received your registration and sent a confirmation email to <span className="text-brass font-medium">{f.email}</span>.
             </p>
-            <div className="mt-6 inline-block rounded-2xl border border-brass/40 bg-[#0E1426] px-9 py-6 shadow-[0_0_30px_rgba(199,163,90,0.15)]">
-              <div className="mono-label text-muted-foreground text-xs">Reference ID</div>
+
+            <div className="mt-5 inline-flex flex-col items-center rounded-2xl border border-brass/40 bg-[#0E1426] px-8 py-5 shadow-[0_0_30px_rgba(199,163,90,0.15)]">
+              <div className="mono-label text-muted-foreground text-xs">Your Delegate Reference ID</div>
               <div data-testid="reg-reference-id" className="font-mono text-3xl text-brass tracking-wider mt-1 font-bold">{reference}</div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (navigator?.clipboard?.writeText) {
+                    navigator.clipboard.writeText(reference);
+                    toast.success("Reference ID copied to clipboard!");
+                  }
+                }}
+                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brass/15 border border-brass/30 text-brass text-xs hover:bg-brass/25 transition-colors"
+              >
+                <Copy size={12} />
+                <span>Copy Reference ID</span>
+              </button>
             </div>
-            <p className="mt-6 text-sm text-muted-foreground">Our team will verify your payment and confirm your committee allotment by email.</p>
+
+            <div className="mt-5 max-w-md mx-auto p-3.5 rounded-xl border border-brass/30 bg-brass/5 text-xs text-secondary-foreground/80 leading-relaxed text-left">
+              <p className="flex items-start gap-2">
+                <span className="text-brass font-bold">ℹ Note:</span>
+                <span>Confirmation emails are dispatched immediately. If you don't find it in your primary inbox, please check your <strong>Spam, Junk, or Promotions folder</strong> and mark it as "Not Spam".</span>
+              </p>
+            </div>
+
+            <p className="mt-5 text-sm text-muted-foreground">Our Secretariat will verify your payment and confirm your committee allotment by email.</p>
             <div className="mt-7 flex items-center justify-center gap-3.5">
               <Link to="/" className="card-luxury inline-flex h-11 items-center rounded-lg border border-border px-6 text-sm text-foreground hover:border-brass transition-colors">Back to home</Link>
               <Link to="/handbook" className="btn-luxury inline-flex h-11 items-center rounded-lg bg-brass px-6 text-sm font-semibold text-[#070A0F] hover:bg-brass-hover transition-colors shadow-[0_0_15px_rgba(199,163,90,0.3)]">Read the Handbook</Link>

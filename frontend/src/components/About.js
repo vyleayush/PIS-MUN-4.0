@@ -92,7 +92,7 @@ export const About = () => (
                 Most conferences hand you a placard and hope for the best. We don't. Paramount International MUN is built around one belief: a good delegate isn't the one who talks the most — it's the one who moves the room.
               </p>
               <p>
-                Real agendas. Executive boards that push you. Committees that reward research, not volume. Whether it's your first placard or your fortieth, you'll leave sharper than you came.
+                Real agendas. Executive boards that push you. Committees that reward research, not volume. Open to students from Classes 6th to 12th — whether it's your first placard or your fortieth, you'll leave sharper than you came.
               </p>
             </div>
           </Reveal>

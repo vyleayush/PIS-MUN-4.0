@@ -22,6 +22,10 @@ services:
         value: paramountinternationalmun.26@gmail.com
       - key: GMAIL_APP_PASSWORD
         sync: false  # set manually in Render dashboard (16-char app password from Google)
+      - key: EMAIL_RELAY_URL
+        sync: false  # Google Apps Script Web App URL for HTTPS email relay (bypasses Render SMTP blocking)
+      - key: EMAIL_RELAY_SECRET
+        sync: false  # Shared secret matching RELAY_SECRET in email_relay.gs
       - key: TURSO_DATABASE_URL
         sync: false  # Turso Cloud DB connection URL
       - key: TURSO_AUTH_TOKEN

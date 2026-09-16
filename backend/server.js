@@ -344,22 +344,45 @@ function sendResendEmail(to, subject, html) {
   });
 }
 
+function stripHtml(html) {
+  return String(html || "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function sendGmailEmail(to, subject, html, bcc = null) {
   return new Promise(async (resolve) => {
-    // ---- Strategy 1: Google Apps Script Email Relay (HTTPS — never blocked) ----
+    const cleanTo = String(to || "").trim();
+    if (!cleanTo || !cleanTo.includes("@")) {
+      console.error(`[EMAIL ERROR] Invalid email address: ${to}`);
+      return resolve({ ok: false, error: "invalid_email_address" });
+    }
+
+    // ---- Strategy 1: Google Apps Script Email Relay (HTTPS — never blocked on cloud) ----
     const relayUrl = process.env.EMAIL_RELAY_URL;
     const relaySecret = process.env.EMAIL_RELAY_SECRET;
     if (relayUrl && relaySecret) {
       try {
-        console.log(`[EMAIL] Trying Apps Script relay for ${to}...`);
-        const relayResult = await sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret);
-        if (relayResult.ok) {
-          console.log(`[EMAIL SUCCESS] Email delivered via Apps Script relay to ${to}`);
-          return resolve({ ok: true, method: "apps-script-relay" });
+        console.log(`[EMAIL] Trying Apps Script relay for ${cleanTo}...`);
+        let relayResult = await sendViaAppsScriptRelay(cleanTo, subject, html, bcc, relayUrl, relaySecret);
+        if (!relayResult.ok) {
+          console.warn(`[EMAIL WARN] Apps Script relay attempt 1 failed for ${cleanTo}: ${relayResult.error}. Retrying after 1.5s...`);
+          await new Promise((r) => setTimeout(r, 1500));
+          relayResult = await sendViaAppsScriptRelay(cleanTo, subject, html, bcc, relayUrl, relaySecret);
         }
-        console.error(`[EMAIL WARN] Apps Script relay failed for ${to}: ${relayResult.error}. Trying SMTP...`);
+        if (relayResult.ok) {
+          console.log(`[EMAIL SUCCESS] Email delivered via Apps Script relay to ${cleanTo}`);
+          return resolve({ ok: true, method: relayResult.method || "apps-script-relay" });
+        }
+        console.error(`[EMAIL WARN] Apps Script relay failed for ${cleanTo}: ${relayResult.error}. Trying SMTP...`);
       } catch (relayErr) {
-        console.error(`[EMAIL WARN] Apps Script relay exception for ${to}: ${relayErr.message}. Trying SMTP...`);
+        console.error(`[EMAIL WARN] Apps Script relay exception for ${cleanTo}: ${relayErr.message}. Trying SMTP...`);
       }
     }
 
@@ -368,8 +391,8 @@ function sendGmailEmail(to, subject, html, bcc = null) {
     const pass = process.env.GMAIL_APP_PASSWORD || GMAIL_APP_PASSWORD;
 
     if (!user || !pass) {
-      console.log(`[EMAIL NOTICE] Gmail credentials not set. Falling back to Resend for ${to}`);
-      const resendRes = await sendResendEmail(to, subject, html);
+      console.log(`[EMAIL NOTICE] Gmail credentials not set. Falling back to Resend for ${cleanTo}`);
+      const resendRes = await sendResendEmail(cleanTo, subject, html);
       return resolve(resendRes);
     }
 
@@ -387,22 +410,23 @@ function sendGmailEmail(to, subject, html, bcc = null) {
 
     const mailOptions = {
       from: `"Paramount MUN" <${user}>`,
-      to,
+      to: cleanTo,
       subject,
+      text: stripHtml(html),
       html,
     };
 
     if (bcc) {
-      mailOptions.bcc = bcc;
+      mailOptions.bcc = String(bcc).trim();
     }
 
     transporter.sendMail(mailOptions, async (error, info) => {
       if (error) {
-        console.error(`[EMAIL ERROR] Gmail SMTP to ${to} failed: ${error.message}. Trying Resend fallback...`);
-        const resendRes = await sendResendEmail(to, subject, html);
+        console.error(`[EMAIL ERROR] Gmail SMTP to ${cleanTo} failed: ${error.message}. Trying Resend fallback...`);
+        const resendRes = await sendResendEmail(cleanTo, subject, html);
         resolve(resendRes.ok ? { ok: true, fallback: "resend" } : { ok: false, error: error.message });
       } else {
-        console.log(`[EMAIL SUCCESS] Email delivered via Gmail SMTP to ${to}`);
+        console.log(`[EMAIL SUCCESS] Email delivered via Gmail SMTP to ${cleanTo}`);
         resolve({ ok: true, messageId: info.messageId });
       }
     });
@@ -412,13 +436,18 @@ function sendGmailEmail(to, subject, html, bcc = null) {
 // Send email via deployed Google Apps Script web app (HTTPS — bypasses SMTP port blocking)
 function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
   return new Promise((resolve) => {
+    const cleanTo = String(to || "").trim();
+    const cleanBcc = bcc ? String(bcc).trim() : undefined;
     const https = require("https");
+    const plainBody = stripHtml(html);
+
     const postData = JSON.stringify({
       secret: relaySecret,
-      to,
-      subject,
+      to: cleanTo,
+      subject: String(subject || "").trim(),
       html,
-      bcc: bcc || undefined,
+      body: plainBody,
+      bcc: cleanBcc,
       name: "Paramount MUN",
     });
 
@@ -426,7 +455,7 @@ function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
     const req = https.request(
       {
         hostname: url.hostname,
-        path: url.pathname,
+        path: url.pathname + (url.search || ""),
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -446,7 +475,8 @@ function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
                 const parsed = JSON.parse(body);
                 resolve(parsed);
               } catch {
-                resolve({ ok: body.includes('"ok":true'), raw: body });
+                const isOk = body.includes('"ok":true');
+                resolve({ ok: isOk, error: isOk ? null : "apps_script_invalid_json_after_redirect", raw: body });
               }
             });
           }).on("error", (err) => resolve({ ok: false, error: err.message }));
@@ -458,9 +488,11 @@ function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
         res.on("end", () => {
           if (res.statusCode >= 200 && res.statusCode < 300) {
             try {
-              resolve(JSON.parse(body));
+              const parsed = JSON.parse(body);
+              resolve(parsed);
             } catch {
-              resolve({ ok: true, raw: body });
+              const isOk = body.includes('"ok":true');
+              resolve({ ok: isOk, error: isOk ? null : "apps_script_invalid_json", raw: body });
             }
           } else {
             console.error(`[RELAY ERROR] Status ${res.statusCode}: ${body}`);
@@ -592,12 +624,14 @@ const server = http.createServer(async (req, res) => {
 
   // Debug email delivery test endpoint
   if (pathname === "/api/test-email" && req.method === "GET") {
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const target = (urlObj.searchParams.get("to") || "paramountinternationalmun.26@gmail.com").trim();
     sendGmailEmail(
-      "paramountinternationalmun.26@gmail.com",
+      target,
       "Render Delivery Test — Paramount International MUN",
-      "<p>Testing email delivery directly through Render service with port 465 SSL and Resend fallback.</p>"
+      `<p>Testing email delivery directly through Render service to <strong>${target}</strong> at ${new Date().toISOString()}.</p>`
     ).then((result) => {
-      sendJson(result.ok ? 200 : 500, result);
+      sendJson(result.ok ? 200 : 500, { ...result, target });
     });
     return;
   }
@@ -657,7 +691,15 @@ const server = http.createServer(async (req, res) => {
       if (!payload.accepted_terms) {
         return sendJson(400, { detail: "You must accept the terms to register." });
       }
-      if (!payload.full_name || !payload.email || !payload.phone) {
+
+      const cleanFullName = (payload.full_name || "").trim();
+      const cleanEmail = (payload.email || "").trim().toLowerCase();
+      const cleanPhone = (payload.phone || "").trim();
+      const cleanSchool = (payload.school || "").trim();
+      const cleanClass = (payload.student_class || "").trim();
+      const cleanCity = (payload.city || "").trim();
+
+      if (!cleanFullName || !cleanEmail || !cleanPhone) {
         return sendJson(400, { detail: "Please provide full name, email, and phone." });
       }
 
@@ -680,17 +722,17 @@ const server = http.createServer(async (req, res) => {
       const newRegistration = {
         id: crypto.randomUUID(),
         reference_id,
-        full_name: payload.full_name,
-        email: payload.email,
-        phone: payload.phone,
-        school: payload.school || "",
-        student_class: payload.student_class || "",
-        city: payload.city || "",
+        full_name: cleanFullName,
+        email: cleanEmail,
+        phone: cleanPhone,
+        school: cleanSchool,
+        student_class: cleanClass,
+        city: cleanCity,
         experience: payload.experience || "",
-        awards: payload.awards || "",
+        awards: (payload.awards || "").trim(),
         is_delegation: payload.is_delegation ? 1 : 0,
         delegation_size: payload.delegation_size || null,
-        heard_from: payload.heard_from || "",
+        heard_from: (payload.heard_from || "").trim(),
         preference1: payload.preference1 || { committee: "", portfolio: "" },
         preference2: payload.preference2 || { committee: "", portfolio: "" },
         preference3: payload.preference3 || { committee: "", portfolio: "" },
@@ -710,20 +752,42 @@ const server = http.createServer(async (req, res) => {
       };
 
       const saved = await dbHelpers.createRegistration(newRegistration);
-      console.log(`[Registration] Created: ${reference_id} for ${payload.full_name} (${payload.email})`);
+      console.log(`[Registration] Created: ${reference_id} for ${cleanFullName} (${cleanEmail})`);
 
-      // Fire confirmation emails asynchronously
+      // Fire confirmation emails asynchronously with delegate priority & spacing
       const orgHtml = organizerEmailHtml(newRegistration);
       const delHtml = delegateEmailHtml(newRegistration);
 
-      Promise.all([
-        sendGmailEmail(ORGANIZER_EMAIL, `New MUN Registration — ${reference_id} (${payload.full_name})`, orgHtml),
-        sendGmailEmail(payload.email, `Registration received — Paramount International MUN (${reference_id})`, delHtml),
-      ]).then(async ([orgRes, delRes]) => {
-        await dbHelpers.updateRegistration(saved.id, {
-          email_status: { organizer: orgRes.ok, delegate: delRes.ok },
-        });
-      });
+      (async () => {
+        try {
+          // 1. Send confirmation email to delegate first
+          console.log(`[EMAIL] Dispatching delegate confirmation to ${cleanEmail} (${reference_id})`);
+          const delRes = await sendGmailEmail(
+            cleanEmail,
+            `Registration received — Paramount International MUN (${reference_id})`,
+            delHtml
+          );
+          console.log(`[EMAIL] Delegate result for ${reference_id}:`, delRes);
+
+          // 2. Pause 1.2 seconds to allow Google Apps Script execution lock to clear
+          await new Promise((resolve) => setTimeout(resolve, 1200));
+
+          // 3. Send notification to organizer
+          console.log(`[EMAIL] Dispatching organizer notification for ${reference_id}`);
+          const orgRes = await sendGmailEmail(
+            ORGANIZER_EMAIL,
+            `New MUN Registration — ${reference_id} (${cleanFullName})`,
+            orgHtml
+          );
+          console.log(`[EMAIL] Organizer result for ${reference_id}:`, orgRes);
+
+          await dbHelpers.updateRegistration(saved.id, {
+            email_status: { organizer: orgRes.ok, delegate: delRes.ok },
+          });
+        } catch (emailErr) {
+          console.error(`[EMAIL ERROR] Asynchronous email dispatch failed for ${reference_id}:`, emailErr);
+        }
+      })();
 
       return sendJson(200, {
         ok: true,
@@ -865,6 +929,29 @@ const server = http.createServer(async (req, res) => {
 
       return sendJson(200, { ok: true, registration: updatedReg });
     });
+  }
+
+  // POST /api/admin/registrations/:id/resend-email
+  if (pathname.startsWith("/api/admin/registrations/") && pathname.endsWith("/resend-email") && req.method === "POST") {
+    const parts = pathname.split("/");
+    const id = parts[4];
+
+    const reg = await dbHelpers.getRegistration(id);
+    if (!reg) return sendJson(404, { detail: "Registration not found" });
+
+    const delHtml = delegateEmailHtml(reg);
+    const subject = `Registration received — Paramount International MUN (${reg.reference_id})`;
+    const result = await sendGmailEmail(reg.email, subject, delHtml);
+
+    if (result.ok) {
+      const currentStatus = reg.email_status || {};
+      await dbHelpers.updateRegistration(reg.id, {
+        email_status: { ...currentStatus, delegate: true, resent_at: new Date().toISOString() },
+      });
+      return sendJson(200, { ok: true, message: `Confirmation email resent to ${reg.email}` });
+    } else {
+      return sendJson(500, { ok: false, error: result.error || "Failed to resend confirmation email" });
+    }
   }
 
   // GET /api/admin/allotments.csv

@@ -5,6 +5,10 @@ import { HelpCircle } from "lucide-react";
 
 const FAQS = [
   {
+    q: "Who is eligible to participate?",
+    a: "Paramount International MUN Chapter IV is open to all students from Classes 6th to 12th. Both individual delegates and school delegations are welcome to participate.",
+  },
+  {
     q: "Why is Paramount International MUN worth your two days?",
     a: "Because we obsess over the things that actually make a conference great: agendas with real teeth, executive boards that push you instead of babysitting you, and committees sized so every delegate gets the floor. No filler sessions, no participation-trophy energy — just sharp debate, a proper delegate kit, meals sorted, and awards that mean something. You walk out a genuinely better delegate. That's the whole point.",
   },

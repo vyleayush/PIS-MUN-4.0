@@ -30,6 +30,7 @@ export const adminStats = () => api.get("/admin/stats").then((r) => r.data);
 export const adminRegistrations = () => api.get("/admin/registrations").then((r) => r.data);
 export const adminUpdateRegistration = (id, body) => api.patch(`/admin/registrations/${id}`, body).then((r) => r.data);
 export const adminDeleteRegistration = (id) => api.delete(`/admin/registrations/${id}`).then((r) => r.data);
+export const adminResendEmail = (id) => api.post(`/admin/registrations/${id}/resend-email`).then((r) => r.data);
 export const adminAllotRegistration = (id, body) => api.post(`/admin/registrations/${id}/allot`, body).then((r) => r.data);
 export const adminCommittees = () => api.get("/admin/committees").then((r) => r.data);
 export const adminUpdateCommittee = (slug, body) => api.patch(`/admin/committees/${slug}`, body).then((r) => r.data);

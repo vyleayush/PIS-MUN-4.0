@@ -23,6 +23,16 @@
 // as EMAIL_RELAY_SECRET in Render's environment variables
 var RELAY_SECRET = "pmun2026-email-relay-secret-change-me";
 
+function stripHtml_(html) {
+  return String(html || "")
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function doPost(e) {
   try {
     var payload = JSON.parse(e.postData.contents);
@@ -34,28 +44,53 @@ function doPost(e) {
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
-    var mailOptions = {
-      to: payload.to,
-      subject: payload.subject,
+    var cleanTo = String(payload.to || "").trim();
+    if (!cleanTo) {
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: false, error: "missing_recipient" })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var cleanSubject = String(payload.subject || "Paramount International MUN Notification").trim();
+    var plainBody = payload.body || payload.text || stripHtml_(payload.html) || "Paramount International MUN Registration Confirmation";
+    var senderName = payload.name || "Paramount MUN";
+
+    var options = {
       htmlBody: payload.html,
+      name: senderName,
     };
 
     if (payload.bcc) {
-      mailOptions.bcc = payload.bcc;
+      options.bcc = String(payload.bcc).trim();
     }
 
     if (payload.replyTo) {
-      mailOptions.replyTo = payload.replyTo;
+      options.replyTo = String(payload.replyTo).trim();
     }
 
-    // Set the sender name
-    mailOptions.name = payload.name || "Paramount MUN";
+    // Try GmailApp first (sends from the authenticated Google account with full SPF/DKIM and logs in Sent Mail)
+    try {
+      GmailApp.sendEmail(cleanTo, cleanSubject, plainBody, options);
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: true, method: "gmail-app", to: cleanTo })
+      ).setMimeType(ContentService.MimeType.JSON);
+    } catch (gmailErr) {
+      // Fallback to MailApp if GmailApp encounters permission or scope issues
+      var mailOptions = {
+        to: cleanTo,
+        subject: cleanSubject,
+        body: plainBody,
+        htmlBody: payload.html,
+        name: senderName,
+      };
+      if (options.bcc) mailOptions.bcc = options.bcc;
+      if (options.replyTo) mailOptions.replyTo = options.replyTo;
 
-    MailApp.sendEmail(mailOptions);
-
-    return ContentService.createTextOutput(
-      JSON.stringify({ ok: true, method: "apps-script-relay" })
-    ).setMimeType(ContentService.MimeType.JSON);
+      MailApp.sendEmail(mailOptions);
+      return ContentService.createTextOutput(
+        JSON.stringify({ ok: true, method: "mail-app-fallback", to: cleanTo })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
 
   } catch (err) {
     return ContentService.createTextOutput(

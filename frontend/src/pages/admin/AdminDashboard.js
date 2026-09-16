@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download, RefreshCw, Database, UploadCloud } from "lucide-react";
+import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download, RefreshCw, Database, UploadCloud, Mail } from "lucide-react";
 import {
   adminStats, adminRegistrations, adminUpdateRegistration, adminDeleteRegistration, adminAllotRegistration,
   adminCommittees, adminUpdateCommittee, adminUpdatePortfolio,
-  adminReferralCodes, adminCreateCode, adminUpdateCode, adminDeleteCode,
+  adminReferralCodes, adminCreateCode, adminUpdateCode, adminDeleteCode, adminResendEmail,
 } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -220,6 +220,21 @@ export default function AdminDashboard() {
       // Restart auto-refresh after delete
       autoRefreshRef.current = setInterval(() => loadAll(false), 60000);
     } catch { toast.error("Delete failed"); }
+  };
+
+  const [resendingEmail, setResendingEmail] = useState(false);
+  const resendEmail = async (reg) => {
+    if (resendingEmail) return;
+    setResendingEmail(true);
+    try {
+      await adminResendEmail(reg.id);
+      toast.success(`Confirmation email resent to ${reg.email}!`);
+      refreshStats();
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || e?.response?.data?.error || "Failed to resend email");
+    } finally {
+      setResendingEmail(false);
+    }
   };
 
   const filtered = regs.filter((r) => {
@@ -489,6 +504,17 @@ export default function AdminDashboard() {
                 ) : (
                   <AllotmentEditor reg={selected} onAllot={allotPortfolio} />
                 )}
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  data-testid="admin-resend-email"
+                  onClick={() => resendEmail(selected)}
+                  disabled={resendingEmail}
+                  className="flex-1 h-10 rounded-lg text-sm border border-brass/40 bg-brass/10 text-brass hover:bg-brass/20 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Mail size={16} /> {resendingEmail ? "Sending…" : "Resend Confirmation Email"}
+                </button>
               </div>
 
               {selected.payment_status === "rejected" && (

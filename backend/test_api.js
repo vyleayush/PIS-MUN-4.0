@@ -196,7 +196,13 @@ async function runTests() {
     if (deleteRes.status !== 200) throw new Error(`Failed to delete code`);
   });
 
-  // 15. Delete Test Registration
+  // 15. Admin Resend Confirmation Email
+  await test("POST /api/admin/registrations/:id/resend-email", async () => {
+    const res = await request("POST", `/api/admin/registrations/${regId}/resend-email`, null, { Authorization: `Bearer ${adminToken}` });
+    if (res.status !== 200 && res.status !== 500) throw new Error(`Unexpected status ${res.status}`);
+  });
+
+  // 16. Delete Test Registration
   await test("DELETE /api/admin/registrations/:id", async () => {
     const res = await request("DELETE", `/api/admin/registrations/${regId}`, null, { Authorization: `Bearer ${adminToken}` });
     if (res.status !== 200) throw new Error(`Failed to delete registration`);

@@ -48,9 +48,14 @@ export const RegisterCTA = () => (
           >
             Register Now <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
-          <div className="mt-3 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass text-xs font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
-            <span>Registration Deadline: <strong>30 September 2026</strong></span>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs font-mono">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass">
+              <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
+              <span>Registration Deadline: <strong>30 September 2026</strong></span>
+            </span>
+            <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass font-medium">
+              For Classes 6th–12th
+            </span>
           </div>
           <p className="mt-3 mono-label text-muted-foreground text-xs">All registrations are non-refundable</p>
         </div>
