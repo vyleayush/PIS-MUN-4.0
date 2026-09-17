@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 
 // Conference schedule (IST)
-export const DAY1_START = new Date("2026-10-09T09:00:00+05:30");
-export const DAY2_START = new Date("2026-10-10T09:00:00+05:30");
-export const CONF_END = new Date("2026-10-10T18:00:00+05:30");
+export const DAY1_START = new Date("2026-10-09T08:30:00+05:30");
+export const DAY2_START = new Date("2026-10-10T08:30:00+05:30");
+export const CONF_END = new Date("2026-10-10T17:00:00+05:30");
 
 export function diff(target, now = new Date()) {
   let d = Math.max(0, target - now);

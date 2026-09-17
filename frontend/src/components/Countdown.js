@@ -11,8 +11,8 @@ const STAGES = [
     dateText: "Friday, 9 October 2026",
     shortDate: "9 Oct",
     target: DAY1_START,
-    timing: "09:00 AM IST",
-    event: "Opening Plenary & Committee Session I",
+    timing: "08:30 AM IST",
+    event: "Registration & Opening Ceremony",
     badge: "Chapter IV Commences",
   },
   {
@@ -21,9 +21,9 @@ const STAGES = [
     dateText: "Saturday, 10 October 2026",
     shortDate: "10 Oct",
     target: DAY2_START,
-    timing: "09:00 AM IST",
-    event: "Crisis Session & Valedictory Ceremony",
-    badge: "Crisis & Closing Gala",
+    timing: "08:30 AM IST",
+    event: "Committee Session IV & Closing Awards",
+    badge: "Final Sessions & Gala",
   },
 ];
 
@@ -126,8 +126,8 @@ export const Countdown = ({ compact = false }) => {
     const liveState = isEnded
       ? { tag: "That's a wrap", text: "See you in Chapter V", sub: "Paramount MUN 2026 concluded" }
       : isDay2Live
-      ? { tag: "Day 02 In Session", text: "Crisis & Valedictory is Live", sub: "Paramount International School" }
-      : { tag: "Day 01 In Session", text: "Opening Plenary is Live", sub: "Paramount International School" };
+      ? { tag: "Day 02 In Session", text: "Committees & Closing is Live", sub: "Paramount International School" }
+      : { tag: "Day 01 In Session", text: "Registration & Plenary is Live", sub: "Paramount International School" };
 
     return (
       <div
