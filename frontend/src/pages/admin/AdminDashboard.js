@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { LogOut, Users, ClipboardList, Ticket, Search, Plus, Trash2, X, Download, RefreshCw, Database, UploadCloud, Mail } from "lucide-react";
 import {
-  adminStats, adminRegistrations, adminUpdateRegistration, adminDeleteRegistration, adminAllotRegistration,
+  adminStats, adminRegistrations, adminRegistration, adminUpdateRegistration, adminDeleteRegistration, adminAllotRegistration,
   adminCommittees, adminUpdateCommittee, adminUpdatePortfolio,
   adminReferralCodes, adminCreateCode, adminUpdateCode, adminDeleteCode, adminResendEmail,
 } from "@/lib/api";
@@ -92,6 +92,21 @@ export default function AdminDashboard() {
   const logout = () => {
     localStorage.removeItem("pmun_admin_token");
     navigate("/admin/login");
+  };
+
+  const handleSelectReg = async (reg) => {
+    setSelected(reg);
+    if (reg && (!reg.payment_screenshot || !reg.id_card) && (reg.has_payment_screenshot || reg.has_id_card)) {
+      try {
+        const full = await adminRegistration(reg.id);
+        if (full) {
+          setSelected(full);
+          setRegs((prev) => prev.map((x) => (x.id === full.id ? full : x)));
+        }
+      } catch (err) {
+        // Fallback to initial row data
+      }
+    }
   };
 
   const updateStatus = async (reg, status) => {
@@ -410,7 +425,7 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => setSelected(r)} data-testid={`admin-view-${r.reference_id}`} className="text-brass hover:underline text-sm">Manage</button>
+                        <button onClick={() => handleSelectReg(r)} data-testid={`admin-view-${r.reference_id}`} className="text-brass hover:underline text-sm">Manage</button>
                       </td>
                     </tr>
                   ))}

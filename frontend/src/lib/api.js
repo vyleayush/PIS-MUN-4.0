@@ -28,6 +28,7 @@ export const uploadRegistrationScreenshot = (referenceId, file) => {
 export const adminLogin = (email, password) => api.post("/admin/login", { email, password }).then((r) => r.data);
 export const adminStats = () => api.get("/admin/stats").then((r) => r.data);
 export const adminRegistrations = () => api.get("/admin/registrations").then((r) => r.data);
+export const adminRegistration = (id) => api.get(`/admin/registrations/${id}`).then((r) => r.data);
 export const adminUpdateRegistration = (id, body) => api.patch(`/admin/registrations/${id}`, body).then((r) => r.data);
 export const adminDeleteRegistration = (id) => api.delete(`/admin/registrations/${id}`).then((r) => r.data);
 export const adminResendEmail = (id) => api.post(`/admin/registrations/${id}/resend-email`).then((r) => r.data);

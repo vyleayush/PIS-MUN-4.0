@@ -185,6 +185,8 @@ async function initDatabase() {
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
       );`,
+      `CREATE INDEX IF NOT EXISTS idx_registrations_created ON registrations(created_at DESC);`,
+      `CREATE INDEX IF NOT EXISTS idx_registrations_status ON registrations(payment_status);`,
     ]);
 
     // Migrations
@@ -490,8 +492,29 @@ const dbHelpers = {
   },
 
   // Registrations
-  async getRegistrations() {
+  async getRegistrations(options = {}) {
     await initDatabase();
+    if (options.includeImages === false) {
+      const res = await dbClient.execute(`
+        SELECT 
+          id, reference_id, full_name, email, phone, school, student_class, city, experience, awards,
+          is_delegation, delegation_size, heard_from, preference1, preference2, preference3,
+          referral_code, applied_referral, fee, fee_tier, payment_status,
+          accepted_terms, admin_note, allotted_committee, allotted_portfolio, created_at, email_status,
+          CASE WHEN payment_screenshot IS NOT NULL AND length(payment_screenshot) > 0 THEN 1 ELSE 0 END as has_payment_screenshot,
+          CASE WHEN id_card IS NOT NULL AND length(id_card) > 0 THEN 1 ELSE 0 END as has_id_card
+        FROM registrations 
+        ORDER BY created_at DESC
+      `);
+      return res.rows.map((row) => {
+        const formatted = formatRegistrationRow(row);
+        formatted.payment_screenshot = "";
+        formatted.id_card = "";
+        formatted.has_payment_screenshot = !!row.has_payment_screenshot;
+        formatted.has_id_card = !!row.has_id_card;
+        return formatted;
+      });
+    }
     const res = await dbClient.execute("SELECT * FROM registrations ORDER BY created_at DESC");
     return res.rows.map(formatRegistrationRow);
   },
@@ -643,14 +666,21 @@ const dbHelpers = {
 
   async getStats() {
     await initDatabase();
-    const regs = await this.getRegistrations();
-    const total = regs.length;
-    const verified = regs.filter((r) => r.payment_status === "verified").length;
-    const pending = regs.filter((r) => r.payment_status === "pending").length;
-    const rejected = regs.filter((r) => r.payment_status === "rejected").length;
-    const total_revenue = regs
-      .filter((r) => r.payment_status === "verified")
-      .reduce((sum, r) => sum + (r.fee || 1700), 0);
+    const res = await dbClient.execute(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN payment_status = 'verified' THEN 1 ELSE 0 END) as verified,
+        SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN payment_status = 'rejected' THEN 1 ELSE 0 END) as rejected,
+        SUM(CASE WHEN payment_status = 'verified' THEN COALESCE(fee, 1700) ELSE 0 END) as total_revenue
+      FROM registrations
+    `);
+    const row = res.rows[0] || {};
+    const total = Number(row.total || 0);
+    const verified = Number(row.verified || 0);
+    const pending = Number(row.pending || 0);
+    const rejected = Number(row.rejected || 0);
+    const total_revenue = Number(row.total_revenue || 0);
 
     return {
       total,

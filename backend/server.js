@@ -839,8 +839,17 @@ const server = http.createServer(async (req, res) => {
   // GET /api/admin/registrations
   if (pathname === "/api/admin/registrations" && req.method === "GET") {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
-    const regs = await dbHelpers.getRegistrations();
+    const full = parsedUrl.searchParams.get("full") === "true";
+    const regs = await dbHelpers.getRegistrations({ includeImages: full });
     return sendJson(200, regs);
+  }
+
+  // GET /api/admin/registrations/:id
+  if (pathname.startsWith("/api/admin/registrations/") && req.method === "GET" && !pathname.endsWith(".csv") && !pathname.endsWith("/allot")) {
+    const id = pathname.replace("/api/admin/registrations/", "").trim();
+    const reg = await dbHelpers.getRegistration(id);
+    if (!reg) return sendJson(404, { detail: "Registration not found" });
+    return sendJson(200, reg);
   }
 
   // PATCH /api/admin/registrations/:id
