@@ -31,6 +31,39 @@ if (isCloudDb) {
   dbType = "Local SQLite (file)";
 }
 
+// ----------------------------- Network Resilience -----------------------------
+// Wrap dbClient methods with exponential backoff retries to handle weak/slow WiFi
+const originalExecute = dbClient.execute.bind(dbClient);
+const originalBatch = dbClient.batch.bind(dbClient);
+
+dbClient.execute = async function (args) {
+  let attempt = 0;
+  while (attempt < 3) {
+    try {
+      return await originalExecute(args);
+    } catch (err) {
+      attempt++;
+      console.warn(`[DB WARN] execute failed (attempt ${attempt}/3): ${err.message}`);
+      if (attempt >= 3) throw err;
+      await new Promise((res) => setTimeout(res, 1000 * attempt));
+    }
+  }
+};
+
+dbClient.batch = async function (stmts) {
+  let attempt = 0;
+  while (attempt < 3) {
+    try {
+      return await originalBatch(stmts);
+    } catch (err) {
+      attempt++;
+      console.warn(`[DB WARN] batch failed (attempt ${attempt}/3): ${err.message}`);
+      if (attempt >= 3) throw err;
+      await new Promise((res) => setTimeout(res, 1000 * attempt));
+    }
+  }
+};
+
 // ----------------------------- Seed Data -----------------------------
 const UNGA_ROSTER = [
   "Islamic Republic of Afghanistan", "Argentina", "Australia", "Austria", "Bangladesh", "Belgium", "Brazil", "Canada", "Chile", "China", "Croatia", "Czech Republic", "Denmark", "Egypt", "Finland", "France", "Germany", "Greece", "Grenada", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Israel", "Italy", "Japan", "Kazakhstan", "Lebanon", "Libya", "Luxembourg", "Mexico", "Morocco", "Namibia", "Nepal", "Netherlands", "New Zealand", "Nigeria", "Norway", "Pakistan", "Palestine", "Poland", "Qatar", "Republic Of Korea", "Russia", "Rwanda", "Saudi Arabia", "South Africa", "Spain", "Sudan", "Sweden", "Syria", "Turkey", "Ukraine", "United Arab Emirates", "United Kingdom", "United States of America", "Burkina Faso", "Vietnam"
@@ -317,6 +350,11 @@ function formatRegistrationRow(row) {
   };
 }
 
+// ----------------------------- Cache System -----------------------------
+let committeesCache = null;
+let committeesCacheTime = 0;
+const CACHE_TTL = 60 * 1000; // 60 seconds cache for committees to make frontend lightning fast
+
 // ----------------------------- Async DB Helpers -----------------------------
 const dbHelpers = {
   getDbInfo() {
@@ -333,9 +371,18 @@ const dbHelpers = {
 
   // Committees
   async getCommittees() {
+    // Return cached data if valid and we are on low wifi
+    if (committeesCache && (Date.now() - committeesCacheTime < CACHE_TTL)) {
+      return committeesCache;
+    }
+    
     await initDatabase();
     const res = await dbClient.execute("SELECT * FROM committees ORDER BY order_num ASC");
-    return res.rows.map(formatCommitteeRow);
+    const parsed = res.rows.map(formatCommitteeRow);
+    
+    committeesCache = parsed;
+    committeesCacheTime = Date.now();
+    return parsed;
   },
 
   async getCommitteeBySlug(slug) {
@@ -367,6 +414,7 @@ const dbHelpers = {
       args: [chair, eb, difficulty, agenda, handbook_link, slug],
     });
 
+    committeesCache = null; // Invalidate cache
     return await this.getCommitteeBySlug(slug);
   },
 
@@ -392,6 +440,7 @@ const dbHelpers = {
       args: [JSON.stringify(portfolios), slug],
     });
 
+    committeesCache = null; // Invalidate cache
     return await this.getCommitteeBySlug(slug);
   },
 
