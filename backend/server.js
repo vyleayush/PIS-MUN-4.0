@@ -325,8 +325,15 @@ function sendResendEmail(to, subject, html) {
             console.log(`[RESEND SUCCESS] Email sent to ${to}: ${body}`);
             resolve({ ok: true, id: body });
           } else {
-            console.error(`[RESEND ERROR] Status ${res.statusCode}: ${body}`);
-            resolve({ ok: false, error: body });
+            let parsedErr = body;
+            try {
+              const jsonErr = JSON.parse(body);
+              if (jsonErr.message && jsonErr.message.includes("testing emails to your own email address")) {
+                parsedErr = "Resend free tier (onboarding@resend.dev) can only send to account owner. Cannot deliver to delegates without a verified domain. Use EMAIL_RELAY_URL for student delivery.";
+              }
+            } catch (e) {}
+            console.error(`[RESEND ERROR] Status ${res.statusCode} for ${to}: ${parsedErr}`);
+            resolve({ ok: false, error: parsedErr });
           }
         });
       }
@@ -436,6 +443,37 @@ function sendGmailEmail(to, subject, html, bcc = null) {
   });
 }
 
+// Helper to follow GET redirects up to maxHops (Google Apps Script redirects via script.googleusercontent.com)
+function followGetRedirects(targetUrl, maxHops = 5) {
+  return new Promise((resolve) => {
+    if (maxHops <= 0) return resolve({ ok: false, error: "too_many_redirects" });
+    const https = require("https");
+    const parsed = new URL(targetUrl);
+    const req = https.get(parsed.href, { timeout: 20000 }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        const nextUrl = new URL(res.headers.location, parsed.href).href;
+        return resolve(followGetRedirects(nextUrl, maxHops - 1));
+      }
+      let body = "";
+      res.on("data", (chunk) => (body += chunk));
+      res.on("end", () => {
+        try {
+          const parsedJson = JSON.parse(body);
+          resolve(parsedJson);
+        } catch (e) {
+          const isOk = body.includes('"ok":true');
+          resolve({ ok: isOk, error: isOk ? null : "apps_script_invalid_json_after_redirect", raw: body });
+        }
+      });
+    });
+    req.on("error", (err) => resolve({ ok: false, error: err.message }));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve({ ok: false, error: "timeout_following_redirect" });
+    });
+  });
+}
+
 // Send email via deployed Google Apps Script web app (HTTPS — bypasses SMTP port blocking)
 function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
   return new Promise((resolve) => {
@@ -466,24 +504,16 @@ function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
         },
         timeout: 30000,
       },
-      (res) => {
-        // Google Apps Script redirects (302) on POST responses — follow it
+      async (res) => {
+        // Google Apps Script redirects (302) on POST responses — follow it recursively
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          const redirectUrl = new URL(res.headers.location);
-          https.get(redirectUrl.href, { timeout: 15000 }, (redirectRes) => {
-            let body = "";
-            redirectRes.on("data", (chunk) => (body += chunk));
-            redirectRes.on("end", () => {
-              try {
-                const parsed = JSON.parse(body);
-                resolve(parsed);
-              } catch {
-                const isOk = body.includes('"ok":true');
-                resolve({ ok: isOk, error: isOk ? null : "apps_script_invalid_json_after_redirect", raw: body });
-              }
-            });
-          }).on("error", (err) => resolve({ ok: false, error: err.message }));
-          return;
+          try {
+            const redirectUrl = new URL(res.headers.location, url.href).href;
+            const result = await followGetRedirects(redirectUrl);
+            return resolve(result);
+          } catch (redErr) {
+            return resolve({ ok: false, error: "redirect_failed: " + redErr.message });
+          }
         }
 
         let body = "";

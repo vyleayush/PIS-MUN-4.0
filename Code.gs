@@ -166,6 +166,15 @@ function doPost(e) {
 
     sendReviewEmail_(responseId, token, committee, country, detailLines, idCardLink, paymentLink, replyTo);
 
+    // Send immediate confirmation email to the student
+    if (email && email.indexOf('@') !== -1) {
+      try {
+        sendDelegateConfirmationEmail_(email, studentName, responseId, committee, country, feeTier);
+      } catch (studentMailErr) {
+        Logger.log('Could not send student confirmation email to ' + email + ': ' + studentMailErr);
+      }
+    }
+
     return jsonOut_({ ok: true });
   } catch (err) {
     return jsonOut_({ ok: false, error: String(err) });
@@ -206,6 +215,161 @@ function sendReviewEmail_(responseId, token, committee, country, detailLines, id
   });
 }
 
+/** Sends an immediate confirmation email to the student upon form submission. */
+function sendDelegateConfirmationEmail_(to, studentName, refId, committee, country, feeTier) {
+  var cleanName = studentName || 'Delegate';
+  var subject = 'Registration Received — Paramount International MUN (' + refId + ')';
+
+  var html = '' +
+    '<div style="background:#070A0F;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">' +
+    '  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0E1426;border:1px solid #1E2A44;border-radius:14px;overflow:hidden;">' +
+    '    <tr><td style="padding:24px 28px;border-bottom:1px solid #1E2A44;">' +
+    '      <div style="font-size:11px;letter-spacing:3px;color:#C7A35A;text-transform:uppercase;font-weight:700;">PARAMOUNT INTERNATIONAL MODEL UNITED NATIONS</div>' +
+    '      <div style="font-size:12px;color:#9A98A0;margin-top:4px;">9–10 October 2026 · Paramount International School</div>' +
+    '    </td></tr>' +
+    '    <tr><td style="padding:28px 28px 20px;color:#F2F0EA;font-size:14px;line-height:1.7;">' +
+    '      <h2 style="margin:0 0 10px;color:#F2F0EA;font-size:22px;font-family:\'Georgia\',serif;">Registration Received</h2>' +
+    '      <p style="color:#C9C6BC;margin:0 0 18px;">Dear <strong style="color:#FFFFFF;">' + cleanName + '</strong>,</p>' +
+    '      <p style="color:#C9C6BC;margin:0 0 18px;">Thank you for registering for <strong>Paramount International Model United Nations 2026</strong>. Your registration submission has been successfully recorded and is currently under review by our Secretariat.</p>' +
+    '      <div style="background:linear-gradient(145deg,#0B101E,#131A2E);border:1.5px solid #C7A35A;border-radius:12px;padding:18px 20px;margin:0 0 20px;">' +
+    '        <div style="font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-weight:700;">Your Delegate Reference ID</div>' +
+    '        <div style="font-size:22px;color:#E7C978;letter-spacing:2px;margin-top:4px;font-family:monospace;font-weight:700;">' + refId + '</div>' +
+    '      </div>' +
+    '      <table width="100%" style="font-size:13px;border-collapse:collapse;margin-bottom:20px;">' +
+    '        <tr><td style="padding:6px 0;color:#9A98A0;width:40%;">Committee Preference:</td><td style="padding:6px 0;color:#FFFFFF;font-weight:600;">' + (committee || '—') + '</td></tr>' +
+    '        <tr><td style="padding:6px 0;color:#9A98A0;">Country / Portfolio:</td><td style="padding:6px 0;color:#FFFFFF;font-weight:600;">' + (country || '—') + '</td></tr>' +
+    '        <tr><td style="padding:6px 0;color:#9A98A0;">Fee Tier:</td><td style="padding:6px 0;color:#FFFFFF;">' + (feeTier || 'Standard') + '</td></tr>' +
+    '        <tr><td style="padding:6px 0;color:#9A98A0;">Status:</td><td style="padding:6px 0;color:#E7C978;font-weight:600;">Under Review / Pending Verification</td></tr>' +
+    '      </table>' +
+    '      <div style="background:#1A1710;border:1px solid #3A2F18;border-radius:10px;padding:14px 16px;margin-bottom:18px;">' +
+    '        <div style="font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-weight:700;">What Happens Next?</div>' +
+    '        <p style="color:#C9C6BC;margin:6px 0 0;font-size:13px;line-height:1.6;">Our Organizing Committee is reviewing your payment and credentials. Once verified, you will receive an official approval and portfolio allotment confirmation email.</p>' +
+    '      </div>' +
+    '      <p style="color:#9A98A0;margin:16px 0 0;font-size:12.5px;">For inquiries, contact the Secretariat at <a href="mailto:' + NOTIFY_EMAIL + '" style="color:#C7A35A;text-decoration:none;">' + NOTIFY_EMAIL + '</a>.</p>' +
+    '    </td></tr>' +
+    '    <tr><td style="padding:16px 28px;border-top:1px solid #1E2A44;color:#6E7280;font-size:11px;">' +
+    '      This is an automated notification from Paramount International Model United Nations.' +
+    '    </td></tr>' +
+    '  </table>' +
+    '</div>';
+
+  var plain = 'Dear ' + cleanName + ',\n\n' +
+    'Thank you for registering for Paramount International Model United Nations 2026.\n\n' +
+    'Your Delegate Reference ID: ' + refId + '\n' +
+    'Committee: ' + committee + '\n' +
+    'Country / Portfolio: ' + country + '\n' +
+    'Status: Under Review / Pending Verification\n\n' +
+    'Once payment is verified, your registration will be officially approved and your allotment confirmed.\n\n' +
+    'Dates: 9–10 October 2026\n' +
+    'Venue: Paramount International School\n\n' +
+    'Secretariat & Organizing Committee\n' +
+    NOTIFY_EMAIL;
+
+  var options = {
+    htmlBody: html,
+    name: 'Paramount MUN Secretariat',
+    replyTo: NOTIFY_EMAIL
+  };
+
+  try {
+    GmailApp.sendEmail(to, subject, plain, options);
+  } catch (err) {
+    MailApp.sendEmail({
+      to: to,
+      subject: subject,
+      body: plain,
+      htmlBody: html,
+      name: 'Paramount MUN Secretariat',
+      replyTo: NOTIFY_EMAIL
+    });
+  }
+}
+
+/** Sends an official acceptance & allotment confirmation email to the student when accepted by the reviewer. */
+function sendDelegateAcceptanceEmail_(to, studentName, refId, committee, country) {
+  var cleanName = studentName || 'Delegate';
+  var subject = 'Registration Approved & Portfolio Allotted — Paramount International MUN (' + refId + ')';
+
+  var html = '' +
+    '<div style="background:#070A0F;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">' +
+    '  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#0E1426;border:1px solid #1E2A44;border-radius:14px;overflow:hidden;">' +
+    '    <tr><td style="padding:24px 28px;border-bottom:1px solid #1E2A44;">' +
+    '      <div style="font-size:11px;letter-spacing:3px;color:#2FBF71;text-transform:uppercase;font-weight:700;">OFFICIAL CONFIRMATION &amp; ALLOTMENT</div>' +
+    '      <div style="font-size:12px;color:#9A98A0;margin-top:4px;">9–10 October 2026 · Paramount International School</div>' +
+    '    </td></tr>' +
+    '    <tr><td style="padding:28px 28px 20px;color:#F2F0EA;font-size:14px;line-height:1.7;">' +
+    '      <h2 style="margin:0 0 10px;color:#FFFFFF;font-size:22px;font-family:\'Georgia\',serif;">Congratulations, ' + cleanName + '!</h2>' +
+    '      <p style="color:#C9C6BC;margin:0 0 18px;">Your registration and payment for <strong>Paramount International Model United Nations 2026</strong> have been <span style="color:#2FBF71;font-weight:700;">officially approved and verified</span>. Your assigned committee and portfolio are confirmed below:</p>' +
+    '      <div style="background:linear-gradient(145deg,#0B101E,#131A2E);border:1.5px solid #2FBF71;border-radius:12px;padding:20px;margin:0 0 20px;">' +
+    '        <div style="font-size:11px;letter-spacing:2px;color:#C7A35A;text-transform:uppercase;font-weight:700;">Official Delegation Allotment</div>' +
+    '        <div style="margin-top:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">' +
+    '          <div style="font-size:11px;color:#9A98A0;text-transform:uppercase;">Assigned Committee</div>' +
+    '          <div style="font-size:20px;color:#FBE7B6;font-weight:700;margin-top:2px;">' + (committee || 'TBA') + '</div>' +
+    '        </div>' +
+    '        <div style="margin-top:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">' +
+    '          <div style="font-size:11px;color:#9A98A0;text-transform:uppercase;">Allotted Country / Portfolio</div>' +
+    '          <div style="font-size:20px;color:#FFFFFF;font-weight:700;margin-top:2px;">' + (country || 'TBA') + '</div>' +
+    '        </div>' +
+    '        <div style="margin-top:10px;">' +
+    '          <div style="font-size:11px;color:#9A98A0;text-transform:uppercase;">Delegate Reference ID</div>' +
+    '          <div style="font-size:17px;color:#E7C978;font-family:monospace;font-weight:700;margin-top:2px;">' + refId + '</div>' +
+    '        </div>' +
+    '      </div>' +
+    '      <div style="background:#0D1424;border-left:3px solid #C7A35A;padding:12px 16px;border-radius:0 8px 8px 0;margin-bottom:18px;">' +
+    '        <div style="font-size:11px;letter-spacing:1.5px;color:#C7A35A;text-transform:uppercase;font-weight:700;">Preparation Note</div>' +
+    '        <p style="color:#C9C6BC;margin:4px 0 0;font-size:13px;line-height:1.6;">Please research your allotted committee agenda and country policy thoroughly. Official background guides and rules of procedure will be available on the conference portal.</p>' +
+    '      </div>' +
+    '      <p style="color:#9A98A0;margin:16px 0 0;font-size:12.5px;">Questions regarding your allotment? Contact us at <a href="mailto:' + NOTIFY_EMAIL + '" style="color:#C7A35A;text-decoration:none;">' + NOTIFY_EMAIL + '</a>.</p>' +
+    '    </td></tr>' +
+    '    <tr><td style="padding:16px 28px;border-top:1px solid #1E2A44;color:#6E7280;font-size:11px;">' +
+    '      Paramount International Model United Nations Secretariat' +
+    '    </td></tr>' +
+    '  </table>' +
+    '</div>';
+
+  var plain = 'Dear ' + cleanName + ',\n\n' +
+    'Your registration for Paramount International Model United Nations 2026 has been officially approved!\n\n' +
+    'Assigned Committee: ' + committee + '\n' +
+    'Allotted Country / Portfolio: ' + country + '\n' +
+    'Delegate Reference ID: ' + refId + '\n\n' +
+    'Dates: 9–10 October 2026\n' +
+    'Venue: Paramount International School\n\n' +
+    'Secretariat & Organizing Committee\n' +
+    NOTIFY_EMAIL;
+
+  var options = {
+    htmlBody: html,
+    name: 'Paramount MUN Secretariat',
+    replyTo: NOTIFY_EMAIL
+  };
+
+  try {
+    GmailApp.sendEmail(to, subject, plain, options);
+  } catch (err) {
+    MailApp.sendEmail({
+      to: to,
+      subject: subject,
+      body: plain,
+      htmlBody: html,
+      name: 'Paramount MUN Secretariat',
+      replyTo: NOTIFY_EMAIL
+    });
+  }
+}
+
+/** Diagnostic helper to test student email delivery directly from Apps Script editor. */
+function testSendStudentConfirmation() {
+  sendDelegateConfirmationEmail_(
+    NOTIFY_EMAIL,
+    'Test Delegate',
+    'PMUN-TEST01',
+    'UNGA',
+    'India',
+    'Standard'
+  );
+  Logger.log('Test confirmation email sent to ' + NOTIFY_EMAIL);
+}
+
 /** Serves live availability (?mode=availability, or no params) and handles Accept/Decline links. */
 function doGet(e) {
   var params = (e && e.parameter) || {};
@@ -237,6 +401,8 @@ function handleDecision_(params) {
   var committeeIdx = header.indexOf('Committee');
   var countryIdx = header.indexOf('Country/Portfolio');
   var entryIdx = header.indexOf('EntryId');
+  var emailIdx = header.indexOf('Email');
+  var nameIdx = header.indexOf('Student Name');
 
   for (var i = 1; i < data.length; i++) {
     if (data[i][idIdx] === params.id && data[i][tokenIdx] === params.token) {
@@ -266,6 +432,20 @@ function handleDecision_(params) {
           sheet.getRange(i + 1, entryIdx + 1).setValue(finalEntryId);
         }
         sheet.getRange(i + 1, statusIdx + 1).setValue(STATUS_ACCEPTED);
+
+        // Send official acceptance & allotment confirmation email to student
+        var studentEmail = (emailIdx !== -1) ? data[i][emailIdx] : '';
+        var studentName = (nameIdx !== -1) ? data[i][nameIdx] : 'Delegate';
+        var refId = (idIdx !== -1) ? data[i][idIdx] : params.id;
+        var comm = data[i][committeeIdx];
+        if (studentEmail && String(studentEmail).indexOf('@') !== -1) {
+          try {
+            sendDelegateAcceptanceEmail_(studentEmail, studentName, refId, comm, finalCountry);
+          } catch (studentAcceptErr) {
+            Logger.log('Could not send student acceptance email: ' + studentAcceptErr);
+          }
+        }
+
         return htmlOut_('Registration accepted',
           finalCountry + ' (' + data[i][committeeIdx] + ') is now confirmed and locked in. ' +
           'It will no longer show as available to other delegates.');

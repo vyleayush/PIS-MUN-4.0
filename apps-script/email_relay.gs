@@ -104,3 +104,29 @@ function doGet(e) {
     JSON.stringify({ status: "Email relay is running", timestamp: new Date().toISOString() })
   ).setMimeType(ContentService.MimeType.JSON);
 }
+
+/**
+ * Diagnostic test function you can run directly from the Apps Script editor.
+ * Click "Run" on testRelayEmail to test delivery and grant permissions in one click.
+ */
+function testRelayEmail() {
+  var testRecipient = "paramountinternationalmun.26@gmail.com";
+  try {
+    GmailApp.sendEmail(
+      testRecipient,
+      "Relay Self-Test — Paramount MUN",
+      "This is a self-test email verifying that GmailApp permissions are active.",
+      { name: "Paramount MUN" }
+    );
+    Logger.log("SUCCESS: GmailApp sent test email to " + testRecipient);
+  } catch (e) {
+    Logger.log("GmailApp failed: " + e + ". Trying MailApp...");
+    MailApp.sendEmail({
+      to: testRecipient,
+      subject: "Relay Self-Test (MailApp) — Paramount MUN",
+      body: "This is a self-test email verifying that MailApp permissions are active.",
+      name: "Paramount MUN"
+    });
+    Logger.log("SUCCESS: MailApp sent test email to " + testRecipient);
+  }
+}
