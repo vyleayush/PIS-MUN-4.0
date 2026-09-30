@@ -70,6 +70,7 @@ const UNGA_ROSTER = [
 ];
 const UN_ROSTER = [...UNGA_ROSTER];
 const AIPPM_ROSTER = [
+  { name: "Yogi Adityanath", party: "Bharatiya Janta Party" },
   { name: "Arvind Kejriwal", party: "Aam Aadmi Party" }, { name: "Raghav Chadha", party: "Aam Aadmi Party" }, { name: "Sanjay Singh", party: "Aam Aadmi Party" }, { name: "Bhagwant Mann", party: "Aam Aadmi Party" }, { name: "Asaddudin Owaisi", party: "AIMIM" }, { name: "Sayed Imtiyaz Jaleel", party: "AIMIM" }, { name: "N. Rangaswamy", party: "All India N.R. Congress" }, { name: "Mamata Banerjee", party: "All India Trinamool Congress" }, { name: "Mimi Chakraborty", party: "All India Trinamool Congress" }, { name: "Mahua Moitra", party: "All India Trinamool Congress" }, { name: "Abhishek Banerjee", party: "All India Trinamool Congress" }, { name: "Chandra Prakash Choudhary", party: "All Jharkhand Students Union" }, { name: "Anupriya Patel", party: "Apna Dal" }, { name: "Kumari Mayawati", party: "Bahujan Samaj Party" }, { name: "Satish Mishra", party: "Bahujan Samaj Party" }, { name: "Afzal Ansari", party: "Bahujan Samaj Party" }, { name: "Kunwar Danish Ali", party: "Bahujan Samaj Party" }, { name: "K P Reddy", party: "Bharat Rashtra Samithi" }, { name: "N Biren Singh", party: "Bhartiya Janta Party" }, { name: "Narendra Modi", party: "Bharatiya Janta Party" }, { name: "Rajanath Singh", party: "Bharatiya Janta Party" }, { name: "Nirmala Sitharaman", party: "Bharatiya Janta Party" }, { name: "Smriti Irani", party: "Bharatiya Janta Party" }, { name: "Maneka Gandhi", party: "Bharatiya Janta Party" }, { name: "Amit Shah", party: "Bharatiya Janta Party" }, { name: "Jyotiraditya Scindia", party: "Bharatiya Janta Party" }, { name: "Nitin Gadkari", party: "Bharatiya Janta Party" }, { name: "Ravi Shankar Prasad", party: "Bharatiya Janta Party" }, { name: "Dr Harsh Vardhan", party: "Bharatiya Janta Party" }, { name: "Subramanyam Jaishankar", party: "Bharatiya Janta Party" }, { name: "Vasundhara Raje", party: "Bharatiya Janta Party" }, { name: "Captain Amarinder Singh", party: "Bharatiya Janta Party" }, { name: "Kiren Rijiju", party: "Bharatiya Janta Party" }, { name: "Arjun Ram Meghwal", party: "Bharatiya Janta Party" }, { name: "Himanta Biswa Sharma", party: "Bharatiya Janta Party" }, { name: "Pramod Sawant", party: "Bharatiya Janta Party" }, { name: "Bhupendrabhai Patel", party: "Bharatiya Janta Party" }, { name: "Basavaraj Bommai", party: "Bharatiya Janta Party" }, { name: "Shivraj Singh Chouhan", party: "Bharatiya Janta Party" }, { name: "Manik Saha", party: "Bharatiya Janta Party" }, { name: "Pushkar Singh Dhami", party: "Bharatiya Janta Party" }, { name: "Dharmendra Pradhan", party: "Bharatiya Janta Party" }, { name: "Ashvini Vaishnaw", party: "Bharatiya Janta Party" }, { name: "Mukhtar Abbas Naqvi", party: "Bharatiya Janta Party" }, { name: "Hardeep Singh Puri", party: "Bharatiya Janta Party" }, { name: "Bhartruhari Mahtab", party: "Biju Janata Dal" }, { name: "Naveen Patnaik", party: "Biju Janata Dal" }, { name: "Pinaki Mishra", party: "Biju Janata Dal" }, { name: "Sitaram Yechury", party: "Communist Party of India (Marxist)" }, { name: "Brinda Karat", party: "Communist Party of India (Marxist)" }, { name: "Pinarayi Vijayan", party: "Communist Party of India (Marxist)" }, { name: "Dayanidhi Maran", party: "Dravida Munnetra Kazhagam" }, { name: "M. K. Stalin", party: "Dravida Munnetra Kazhagam" }, { name: "Naba Kumar Sarania", party: "Independent" }, { name: "Sonia Gandhi", party: "INDIAN NATIONAL CONGRESS" }, { name: "Rahul Gandhi", party: "INDIAN NATIONAL CONGRESS" }, { name: "Ambika Soni", party: "INDIAN NATIONAL CONGRESS" }, { name: "Dr Shashi Tharoor", party: "INDIAN NATIONAL CONGRESS" }, { name: "Sachin Pilot", party: "INDIAN NATIONAL CONGRESS" }, { name: "Meira Kumar", party: "INDIAN NATIONAL CONGRESS" }, { name: "Salman Khurshid", party: "INDIAN NATIONAL CONGRESS" }, { name: "Dr Manmohan Singh", party: "INDIAN NATIONAL CONGRESS" }, { name: "Gaurav Gogoi", party: "INDIAN NATIONAL CONGRESS" }, { name: "Bhupesh Baghel", party: "INDIAN NATIONAL CONGRESS" }, { name: "Sukhvinder Singh Sukhu", party: "INDIAN NATIONAL CONGRESS" }, { name: "Ashok Gehlot", party: "INDIAN NATIONAL CONGRESS" }, { name: "Adhir Ranjan Chowdhury", party: "INDIAN NATIONAL CONGRESS" }, { name: "Karti P Chidambaram", party: "INDIAN NATIONAL CONGRESS" }, { name: "Manish Tewari", party: "INDIAN NATIONAL CONGRESS" }, { name: "Dr. Farooq Abdullah", party: "Jammu and Kashmir National Conference" }, { name: "Kaushalendra Kumar", party: "Janata Dal (United)" }, { name: "Nitish Kumar", party: "Janata Dal (United)" }, { name: "Hemant Soren", party: "Jharkhand Mukti Morcha" }, { name: "Chirag Paswan", party: "Lok Janshakti Party ( Ram Vilas)" }, { name: "Raj Thackeray", party: "Maharashtra Navnirman Sena" }, { name: "Zoramthanga", party: "Mizo National Front" }, { name: "Agatha Sangma", party: "National People's Party" }, { name: "Conrad Sangma", party: "National People's Party" }, { name: "Sharad Pawar", party: "Nationalist Congress Party" }, { name: "Ajit Pawar", party: "Nationalist Congress Party" }, { name: "Praful Patel", party: "Nationalist Congress Party" }, { name: "Neiphiu Rio", party: "Nationalist Democratic Progressive Party" }, { name: "Tejashwi Yadav", party: "Rashtriya Janata Dal" }, { name: "Misa Bharti", party: "Rashtriya Janata Dal" }, { name: "Lalu Yadav", party: "Rashtriya Janata Dal" }, { name: "Manoj Jha", party: "Rashtriya Janata Dal" }, { name: "Mehboob Ali Kaiser", party: "Rashtriya Lok Janshakti Party" }, { name: "Hanuman Beniwal", party: "Rashtriya Loktantrik Party" }, { name: "N K Premachandran", party: "Revolutionary Socialist Party" }, { name: "Akhilesh Yadav", party: "Samajwadi Party" }, { name: "Shivpal Singh Yadav", party: "Samajwadi Party" }, { name: "Dimple Yadav", party: "Samajwadi Party" }, { name: "Ram Gopal Yadav", party: "Samajwadi Party" }, { name: "Harsimrat Kaur Badal", party: "Shiromani Akali Dal" }, { name: "Sukhbir Singh Badal", party: "Shiromani Akali Dal" }, { name: "Sanjay Raut", party: "Shiv Sena (UBT)" }, { name: "Uddhav Thackeray", party: "Shiv Sena (UBT)" }, { name: "Vinayak Raut", party: "Shiv Sena" }, { name: "Eknath Shinde", party: "Shiv Sena" }, { name: "Prem Singh Tamang", party: "Sikkim Krantikari Morcha" }, { name: "Indra Hang Subba", party: "Sikkim Krantikari Morcha" }, { name: "Yogendra Yadav", party: "Swaraj India" }, { name: "Derek O'Brien", party: "Trinamool Congress" }, { name: "Y. S. Jagan Mohan Reddy", party: "Yuvajana Shramika Rythu Congress Party" }, { name: "Ghulam Nabi Azad", party: "Democratic Progressive Azad Party" }
 ];
 
@@ -302,10 +303,32 @@ async function initDatabase() {
       });
     }
 
-    await dbClient.execute({
-      sql: "UPDATE referral_codes SET protected = 1 WHERE code = 'PARAMOUNT200'",
-      args: [],
-    });
+    // Ensure AIPPM includes Yogi Adityanath if missing
+    try {
+      const aippmRes = await dbClient.execute({
+        sql: "SELECT portfolios FROM committees WHERE slug = 'aippm'",
+        args: [],
+      });
+      if (aippmRes.rows && aippmRes.rows.length > 0) {
+        const currPortfolios = JSON.parse(aippmRes.rows[0].portfolios || "[]");
+        const exists = currPortfolios.some((p) => p.name.toLowerCase() === "yogi adityanath");
+        if (!exists) {
+          currPortfolios.unshift({
+            name: "Yogi Adityanath",
+            party: "Bharatiya Janta Party",
+            status: "available",
+            delegate: null,
+          });
+          await dbClient.execute({
+            sql: "UPDATE committees SET portfolios = ? WHERE slug = 'aippm'",
+            args: [JSON.stringify(currPortfolios)],
+          });
+          console.log("[DB] Added Yogi Adityanath (Bharatiya Janta Party) to AIPPM portfolios.");
+        }
+      }
+    } catch (err) {
+      console.warn("[DB] Failed to verify/add Yogi Adityanath to AIPPM:", err.message);
+    }
 
     isInitialized = true;
     console.log(`[DB] Database initialized successfully. Mode: ${dbType}`);
