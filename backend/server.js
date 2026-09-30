@@ -367,6 +367,7 @@ function sendGmailEmail(to, subject, html, bcc = null) {
     // ---- Strategy 1: Google Apps Script Email Relay (HTTPS — never blocked on cloud) ----
     const relayUrl = process.env.EMAIL_RELAY_URL;
     const relaySecret = process.env.EMAIL_RELAY_SECRET;
+    let relayDiagnostic = null;
     if (relayUrl && relaySecret) {
       try {
         console.log(`[EMAIL] Trying Apps Script relay for ${cleanTo}...`);
@@ -380,8 +381,10 @@ function sendGmailEmail(to, subject, html, bcc = null) {
           console.log(`[EMAIL SUCCESS] Email delivered via Apps Script relay to ${cleanTo}`);
           return resolve({ ok: true, method: relayResult.method || "apps-script-relay" });
         }
+        relayDiagnostic = relayResult.error || "relay_failed";
         console.error(`[EMAIL WARN] Apps Script relay failed for ${cleanTo}: ${relayResult.error}. Trying SMTP...`);
       } catch (relayErr) {
+        relayDiagnostic = relayErr.message;
         console.error(`[EMAIL WARN] Apps Script relay exception for ${cleanTo}: ${relayErr.message}. Trying SMTP...`);
       }
     }
@@ -424,7 +427,7 @@ function sendGmailEmail(to, subject, html, bcc = null) {
       if (error) {
         console.error(`[EMAIL ERROR] Gmail SMTP to ${cleanTo} failed: ${error.message}. Trying Resend fallback...`);
         const resendRes = await sendResendEmail(cleanTo, subject, html);
-        resolve(resendRes.ok ? { ok: true, fallback: "resend" } : { ok: false, error: error.message });
+        resolve(resendRes.ok ? { ok: true, fallback: "resend", relayDiagnostic } : { ok: false, error: error.message, relayDiagnostic });
       } else {
         console.log(`[EMAIL SUCCESS] Email delivered via Gmail SMTP to ${cleanTo}`);
         resolve({ ok: true, messageId: info.messageId });
