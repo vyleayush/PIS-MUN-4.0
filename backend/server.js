@@ -619,6 +619,8 @@ const server = http.createServer(async (req, res) => {
       status: "healthy",
       database: dbInfo.type,
       isCloud: dbInfo.isCloud,
+      hasRelayUrl: Boolean(process.env.EMAIL_RELAY_URL),
+      hasRelaySecret: Boolean(process.env.EMAIL_RELAY_SECRET),
     });
   }
 
@@ -631,7 +633,12 @@ const server = http.createServer(async (req, res) => {
       "Render Delivery Test — Paramount International MUN",
       `<p>Testing email delivery directly through Render service to <strong>${target}</strong> at ${new Date().toISOString()}.</p>`
     ).then((result) => {
-      sendJson(result.ok ? 200 : 500, { ...result, target });
+      sendJson(result.ok ? 200 : 500, {
+        ...result,
+        target,
+        hasRelayUrl: Boolean(process.env.EMAIL_RELAY_URL),
+        hasRelaySecret: Boolean(process.env.EMAIL_RELAY_SECRET),
+      });
     });
     return;
   }
