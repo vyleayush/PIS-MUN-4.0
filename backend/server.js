@@ -627,6 +627,28 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  // Dedicated direct relay test endpoint
+  if (pathname === "/api/test-relay" && req.method === "GET") {
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    const target = (urlObj.searchParams.get("to") || "paramountinternationalmun.26@gmail.com").trim();
+    const relayUrl = process.env.EMAIL_RELAY_URL;
+    const relaySecret = process.env.EMAIL_RELAY_SECRET;
+    if (!relayUrl || !relaySecret) {
+      return sendJson(200, { ok: false, error: "missing_relay_env", hasRelayUrl: Boolean(relayUrl), hasRelaySecret: Boolean(relaySecret) });
+    }
+    sendViaAppsScriptRelay(
+      target,
+      "Relay Test Direct — Paramount International MUN",
+      `<p>Testing direct Google Apps Script relay delivery to <strong>${target}</strong> at ${new Date().toISOString()}.</p>`,
+      null,
+      relayUrl,
+      relaySecret
+    ).then((result) => {
+      sendJson(200, { ...result, target, relayUrlConfigured: true });
+    });
+    return;
+  }
+
   // Debug email delivery test endpoint
   if (pathname === "/api/test-email" && req.method === "GET") {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
