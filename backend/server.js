@@ -411,9 +411,9 @@ function sendGmailEmail(to, subject, html, bcc = null) {
       port: 465,
       secure: true,
       auth: { user, pass },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 7000,
       tls: { servername: "smtp.gmail.com" },
       family: 4,
     });

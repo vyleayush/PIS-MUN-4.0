@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const FALLBACK_BACKEND_URL = "https://backend-9l0d.onrender.com";
+const FALLBACK_BACKEND_URL = "https://pis-mun-4-0-t02w.onrender.com";
 const BACKEND_URL = (process.env.REACT_APP_BACKEND_URL || FALLBACK_BACKEND_URL).replace(/\/$/, "");
 export const API = `${BACKEND_URL}/api`;
 
