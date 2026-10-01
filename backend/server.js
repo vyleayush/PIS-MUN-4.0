@@ -670,8 +670,8 @@ const server = http.createServer(async (req, res) => {
   if (pathname === "/api/test-relay" && req.method === "GET") {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     const target = (urlObj.searchParams.get("to") || "paramountinternationalmun.26@gmail.com").trim();
-    const relayUrl = (process.env.EMAIL_RELAY_URL || "").trim().replace(/^["']|["']$/g, "");
-    const relaySecret = (process.env.EMAIL_RELAY_SECRET || "").trim().replace(/^["']|["']$/g, "");
+    const relayUrl = (urlObj.searchParams.get("url") || process.env.EMAIL_RELAY_URL || "").trim().replace(/^["']|["']$/g, "");
+    const relaySecret = (urlObj.searchParams.get("secret") || process.env.EMAIL_RELAY_SECRET || "").trim().replace(/^["']|["']$/g, "");
     if (!relayUrl || !relaySecret) {
       return sendJson(200, { ok: false, error: "missing_relay_env", hasRelayUrl: Boolean(relayUrl), hasRelaySecret: Boolean(relaySecret) });
     }
@@ -684,7 +684,7 @@ const server = http.createServer(async (req, res) => {
       relayUrl,
       relaySecret
     ).then((result) => {
-      sendJson(200, { ...result, target, relayUrlConfigured: true, configuredSecretHint: secretPreview });
+      sendJson(200, { ...result, target, relayUrlConfigured: true, configuredRelayUrl: relayUrl, configuredSecretHint: secretPreview });
     });
     return;
   }
