@@ -479,11 +479,13 @@ function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
   return new Promise((resolve) => {
     const cleanTo = String(to || "").trim();
     const cleanBcc = bcc ? String(bcc).trim() : undefined;
+    const cleanSecret = String(relaySecret || "").trim().replace(/^["']|["']$/g, "");
+    const cleanRelayUrl = String(relayUrl || "").trim().replace(/^["']|["']$/g, "");
     const https = require("https");
     const plainBody = stripHtml(html);
 
     const postData = JSON.stringify({
-      secret: relaySecret,
+      secret: cleanSecret,
       to: cleanTo,
       subject: String(subject || "").trim(),
       html,
@@ -492,7 +494,14 @@ function sendViaAppsScriptRelay(to, subject, html, bcc, relayUrl, relaySecret) {
       name: "Paramount MUN",
     });
 
-    const url = new URL(relayUrl);
+    let url;
+    try {
+      url = new URL(cleanRelayUrl);
+    } catch (urlErr) {
+      console.error(`[RELAY ERROR] Invalid relay URL: ${cleanRelayUrl}`);
+      return resolve({ ok: false, error: "invalid_relay_url: " + urlErr.message });
+    }
+
     const req = https.request(
       {
         hostname: url.hostname,
@@ -661,11 +670,12 @@ const server = http.createServer(async (req, res) => {
   if (pathname === "/api/test-relay" && req.method === "GET") {
     const urlObj = new URL(req.url, `http://${req.headers.host}`);
     const target = (urlObj.searchParams.get("to") || "paramountinternationalmun.26@gmail.com").trim();
-    const relayUrl = process.env.EMAIL_RELAY_URL;
-    const relaySecret = process.env.EMAIL_RELAY_SECRET;
+    const relayUrl = (process.env.EMAIL_RELAY_URL || "").trim().replace(/^["']|["']$/g, "");
+    const relaySecret = (process.env.EMAIL_RELAY_SECRET || "").trim().replace(/^["']|["']$/g, "");
     if (!relayUrl || !relaySecret) {
       return sendJson(200, { ok: false, error: "missing_relay_env", hasRelayUrl: Boolean(relayUrl), hasRelaySecret: Boolean(relaySecret) });
     }
+    const secretPreview = relaySecret.length > 4 ? `${relaySecret.slice(0, 3)}...${relaySecret.slice(-3)} (${relaySecret.length} chars)` : `${relaySecret.length} chars`;
     sendViaAppsScriptRelay(
       target,
       "Relay Test Direct — Paramount International MUN",
@@ -674,7 +684,7 @@ const server = http.createServer(async (req, res) => {
       relayUrl,
       relaySecret
     ).then((result) => {
-      sendJson(200, { ...result, target, relayUrlConfigured: true });
+      sendJson(200, { ...result, target, relayUrlConfigured: true, configuredSecretHint: secretPreview });
     });
     return;
   }

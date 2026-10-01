@@ -37,10 +37,17 @@ function doPost(e) {
   try {
     var payload = JSON.parse(e.postData.contents);
 
-    // Verify the shared secret
-    if (payload.secret !== RELAY_SECRET) {
+    // Verify the shared secret (trimmed, strip quotes)
+    var cleanProvidedSecret = String(payload.secret || "").trim().replace(/^["']|["']$/g, "");
+    var cleanExpectedSecret = String(RELAY_SECRET || "").trim().replace(/^["']|["']$/g, "");
+
+    if (cleanProvidedSecret !== cleanExpectedSecret) {
       return ContentService.createTextOutput(
-        JSON.stringify({ ok: false, error: "unauthorized" })
+        JSON.stringify({
+          ok: false,
+          error: "unauthorized",
+          hint: "Secret mismatch. Apps Script expected length " + cleanExpectedSecret.length + ", received length " + cleanProvidedSecret.length
+        })
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
