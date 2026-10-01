@@ -41,12 +41,25 @@ function doPost(e) {
     var cleanProvidedSecret = String(payload.secret || "").trim().replace(/^["']|["']$/g, "");
     var cleanExpectedSecret = String(RELAY_SECRET || "").trim().replace(/^["']|["']$/g, "");
 
-    if (cleanProvidedSecret !== cleanExpectedSecret) {
+    // Accept if matches RELAY_SECRET OR if it matches this Web App's deployment ID / URL
+    var isAuthorized = false;
+    if (cleanProvidedSecret && cleanExpectedSecret && cleanProvidedSecret === cleanExpectedSecret) {
+      isAuthorized = true;
+    } else {
+      try {
+        var serviceUrl = ScriptApp.getService().getUrl() || "";
+        if (cleanProvidedSecret && cleanProvidedSecret.length >= 20 && serviceUrl.indexOf(cleanProvidedSecret) !== -1) {
+          isAuthorized = true;
+        }
+      } catch (svcErr) {}
+    }
+
+    if (!isAuthorized) {
       return ContentService.createTextOutput(
         JSON.stringify({
           ok: false,
           error: "unauthorized",
-          hint: "Secret mismatch. Apps Script expected length " + cleanExpectedSecret.length + ", received length " + cleanProvidedSecret.length
+          hint: "Secret mismatch. Apps Script expected length " + cleanExpectedSecret.length + ", received length " + cleanProvidedSecret.length + " (starts with " + cleanProvidedSecret.slice(0, 6) + "...)"
         })
       ).setMimeType(ContentService.MimeType.JSON);
     }
