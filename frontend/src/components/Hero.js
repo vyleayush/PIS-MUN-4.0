@@ -155,7 +155,7 @@ export const Hero = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-brass" />
             </span>
             <span className="mono-label text-brass text-[10px] sm:text-xs tracking-wider">
-              Registrations Live · Closes 6 Sept 2026
+              Registrations Live · Closes 6 Oct 2026
             </span>
             <span className="text-secondary-foreground/60 text-xs hidden sm:inline">|</span>
             <span className="text-secondary-foreground/80 text-xs hidden sm:inline font-mono">
@@ -232,7 +232,7 @@ export const Hero = () => {
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-brass/90 font-mono">
               <div className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
-                <span>Registration Deadline: <strong className="text-brass font-bold">6 September 2026</strong></span>
+                <span>Registration Deadline: <strong className="text-brass font-bold">6 October 2026</strong></span>
               </div>
               <span className="text-brass/40 hidden sm:inline">•</span>
               <span className="px-2.5 py-0.5 rounded-full bg-brass/15 border border-brass/30 text-brass font-medium">
@@ -254,7 +254,7 @@ export const Hero = () => {
               </div>
               <div className="text-left">
                 <div className="mono-label text-brass text-[10px]">Last Date to Register</div>
-                <div className="font-display text-xl sm:text-2xl text-brass">6 September 2026</div>
+                <div className="font-display text-xl sm:text-2xl text-brass">6 October 2026</div>
               </div>
             </div>
 

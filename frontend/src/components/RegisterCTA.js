@@ -25,7 +25,7 @@ export const RegisterCTA = () => (
       <Reveal>
         <div className="mono-label text-brass mb-4 flex items-center justify-center gap-2">
           <Sparkles size={14} className="text-brass animate-pulse" />
-          / Registrations Open · Closes 6 September 2026
+          / Registrations Open · Closes 6 October 2026
         </div>
         <h2 className="section-heading text-foreground">Seats fill fast. Yours shouldn't wait.</h2>
         <p className="mt-5 max-w-xl mx-auto text-secondary-foreground/85 leading-relaxed">
@@ -51,7 +51,7 @@ export const RegisterCTA = () => (
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs font-mono">
             <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass">
               <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
-              <span>Registration Deadline: <strong>6 September 2026</strong></span>
+              <span>Registration Deadline: <strong>6 October 2026</strong></span>
             </span>
             <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass font-medium">
               For Classes 6th–12th
