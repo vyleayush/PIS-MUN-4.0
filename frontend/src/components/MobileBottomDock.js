@@ -84,10 +84,10 @@ export const MobileBottomDock = () => {
           <div className="flex items-center gap-1.5 flex-1 justify-end">
             <Link
               to="/register"
-              className="btn-luxury flex-1 flex items-center justify-center gap-1.5 h-11 px-4 rounded-xl bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] text-[#070A0F] font-semibold text-xs shadow-[0_0_20px_rgba(199,163,90,0.45)] active:scale-95 transition-transform"
+              className="btn-luxury flex-1 flex items-center justify-center gap-1.5 h-11 px-3 rounded-xl bg-white/10 border border-white/20 text-foreground font-semibold text-xs active:scale-95 transition-transform"
             >
-              <Sparkles size={14} className="text-[#070A0F]" />
-              <span>Register Now</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Closed</span>
             </Link>
 
             {scrolledFar && (

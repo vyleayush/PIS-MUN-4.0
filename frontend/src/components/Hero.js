@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionTemplate } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight, MapPin, Sparkles, Compass, ShieldCheck, Flame, FileText, GraduationCap } from "lucide-react";
+import { ArrowRight, MapPin, Sparkles, Compass, ShieldCheck, Flame, FileText, GraduationCap, BookOpen } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { Hero3DScene } from "@/components/Hero3DScene";
 import { HERO_PHOTOS } from "@/lib/assets";
@@ -217,22 +217,32 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.55 }}
-            className="mt-7 sm:mt-8 w-full max-w-lg mx-auto flex flex-col items-center gap-2.5 px-2"
+            className="mt-7 sm:mt-8 w-full max-w-xl mx-auto flex flex-col items-center gap-3 px-2"
           >
-            {/* Primary Action Button */}
-            <Link
-              to="/register"
-              data-testid="hero-register-now-button"
-              className="btn-luxury group w-full sm:w-auto inline-flex h-12 sm:h-14 items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-8 sm:px-10 text-sm sm:text-base font-semibold text-[#070A0F] hover:shadow-[0_0_40px_rgba(199,163,90,0.8)] transition-all active:scale-[0.98]"
-            >
-              <Sparkles size={18} className="text-[#070A0F]" />
-              <span>Register Now — Chapter IV</span>
-              <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
-            </Link>
+            {/* Action Buttons Row */}
+            <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                to="/register"
+                data-testid="hero-register-now-button"
+                className="btn-luxury group w-full sm:w-auto inline-flex h-12 sm:h-14 items-center justify-center gap-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 hover:border-brass/40 px-7 sm:px-8 text-sm sm:text-base font-semibold text-foreground transition-all active:scale-[0.98]"
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>Registrations Closed</span>
+              </Link>
+              <Link
+                to="/handbook"
+                className="btn-luxury group w-full sm:w-auto inline-flex h-12 sm:h-14 items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-7 sm:px-8 text-sm sm:text-base font-semibold text-[#070A0F] hover:shadow-[0_0_35px_rgba(199,163,90,0.7)] transition-all active:scale-[0.98]"
+              >
+                <BookOpen size={18} className="text-[#070A0F]" />
+                <span>Delegate Manual</span>
+                <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
+              </Link>
+            </div>
+
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-brass/90 font-mono">
               <div className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
-                <span>Registration Deadline: <strong className="text-brass font-bold">6 October 2026</strong></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span>Registrations: <strong className="text-brass font-bold">Officially Closed</strong></span>
               </div>
               <span className="text-brass/40 hidden sm:inline">•</span>
               <span className="px-2.5 py-0.5 rounded-full bg-brass/15 border border-brass/30 text-brass font-medium">

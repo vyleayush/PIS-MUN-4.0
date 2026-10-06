@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     q: "When is the last date to register?",
-    a: "Registrations close on 6 October 2026. Because committee seats and country portfolios are allotted on a rolling basis upon payment verification, we strongly encourage registering early before desired portfolios are filled.",
+    a: "Registrations are now officially closed as of 6 October 2026. All registered delegates will receive their portfolio allotments and conference details directly via email.",
   },
   {
     q: "What's your refund policy?",

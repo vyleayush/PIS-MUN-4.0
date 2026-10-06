@@ -239,9 +239,10 @@ function FlipCard({ c, index }) {
             </Link>
             <Link
               to="/register"
-              className="btn-luxury inline-flex h-9 sm:h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] text-xs font-semibold text-[#070A0F] transition-all shadow-[0_0_20px_rgba(199,163,90,0.4)] active:scale-95"
+              className="inline-flex h-9 sm:h-10 flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-brass/40 transition-all active:scale-95"
             >
-              Register <ArrowRight size={13} />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Closed</span>
             </Link>
           </div>
         </div>
@@ -280,10 +281,10 @@ export const Committees = () => {
               <span>/ 05 Committees · Chapter IV</span>
             </div>
             <h2 className="section-heading text-foreground max-w-2xl">
-              Select and register your committee
+              Five premier committees. Chapter IV.
             </h2>
             <p className="mt-4 max-w-xl text-base sm:text-lg text-secondary-foreground/80 leading-relaxed">
-              Tap any placard to flip it in 3D — inspect the agenda, chair vision, and live seat matrix updated in real time.
+              Tap any placard to flip it in 3D — inspect the agenda, chair vision, and all committee details.
             </p>
           </Reveal>
         </div>

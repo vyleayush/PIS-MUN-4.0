@@ -241,10 +241,10 @@ export const Nav = () => {
               <Link
                 to="/register"
                 data-testid="nav-register"
-                className="btn-luxury group inline-flex h-8 sm:h-8.5 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-3.5 sm:px-4 text-xs font-semibold text-[#070A0F] hover:shadow-[0_0_20px_rgba(199,163,90,0.6)] transition-all"
+                className="btn-luxury group inline-flex h-8 sm:h-8.5 items-center gap-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 px-3.5 sm:px-4 text-xs font-semibold text-foreground hover:border-brass/50 transition-all"
               >
-                <Sparkles size={12} className="text-[#070A0F] group-hover:rotate-12 transition-transform" />
-                <span>Register</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span>Registrations Closed</span>
               </Link>
             </div>
 
@@ -253,9 +253,10 @@ export const Nav = () => {
               <Link
                 to="/register"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-7.5 items-center gap-1 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-3 text-[11px] font-bold text-[#070A0F] shadow-[0_0_12px_rgba(199,163,90,0.35)] active:scale-95 transition-transform"
+                className="inline-flex h-7.5 items-center gap-1.5 rounded-full bg-white/10 border border-white/20 px-2.5 text-[11px] font-medium text-foreground active:scale-95 transition-transform"
               >
-                <span>Register</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span>Closed</span>
               </Link>
 
               <motion.button
@@ -390,10 +391,10 @@ export const Nav = () => {
                     <Link
                       to="/register"
                       onClick={() => setOpen(false)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] text-[#070A0F] font-semibold text-xs flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(199,163,90,0.4)] active:scale-[0.98] transition-transform"
+                      className="w-full py-2.5 px-4 rounded-xl bg-white/10 border border-white/20 text-foreground font-semibold text-xs flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
                     >
-                      <Sparkles size={14} className="text-[#070A0F]" />
-                      <span>Register for Chapter IV</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span>Registrations Closed</span>
                     </Link>
                   </motion.div>
 

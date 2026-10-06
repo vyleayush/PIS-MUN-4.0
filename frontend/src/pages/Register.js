@@ -1,595 +1,149 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Loader2, ShieldCheck, CheckCircle2, Copy } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCommittees, validateReferral, submitRegistration, uploadRegistrationScreenshot } from "@/lib/api";
-import { ASSET } from "@/lib/assets";
-
-const EXPERIENCE = ["First-timer", "1–2 conferences", "3–5 conferences", "6+ (veteran)"];
-const STEPS = ["Personal", "Institution", "Preference 1", "Preference 2", "Preference 3", "Reference"];
-
-const Field = ({ label, required, children, hint }) => (
-  <div className="flex flex-col gap-2">
-    <Label className="mono-label text-muted-foreground">
-      {label} {required && <span className="text-brass">*</span>}
-    </Label>
-    {children}
-    {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
-  </div>
-);
-
-const inputCls =
-  "bg-white/[0.02] border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-brass h-11 text-base sm:text-sm";
-
-const DEFAULT_COMMITTEES = [
-  { slug: "unga", name: "UNGA", open_count: 42, total_count: 60, portfolios: [] },
-  { slug: "aippm", name: "AIPPM", open_count: 28, total_count: 50, portfolios: [] },
-  { slug: "who", name: "WHO", open_count: 36, total_count: 60, portfolios: [] },
-  { slug: "uncsw", name: "UNCSW", open_count: 31, total_count: 60, portfolios: [] },
-  { slug: "unhrc", name: "UNHRC", open_count: 39, total_count: 60, portfolios: [] },
-];
+import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, ShieldCheck, CheckCircle2, BookOpen, FileText } from "lucide-react";
 
 export default function Register() {
-  const navigate = useNavigate();
-  const [committees, setCommittees] = useState(DEFAULT_COMMITTEES);
-  const [step, setStep] = useState(1); // 1..5
-  const [phase, setPhase] = useState("form"); // form | payment | done
-  const [submitting, setSubmitting] = useState(false);
-  const [screenshotFile, setScreenshotFile] = useState(null);
-  const [screenshotPreview, setScreenshotPreview] = useState("");
-  const [screenshotUploading, setScreenshotUploading] = useState(false);
-  const [refState, setRefState] = useState(null); // null | 'valid' | 'invalid'
-  const [refResult, setRefResult] = useState(null);
-  const [reference, setReference] = useState("");
-
-  const [f, setF] = useState({
-    full_name: "", email: "", phone: "", school: "", student_class: "", city: "",
-    experience: "", awards: "", is_delegation: false, delegation_size: "",
-    heard_from: "",
-    preference1: { committee: "", portfolio: "" },
-    preference2: { committee: "", portfolio: "" },
-    preference3: { committee: "", portfolio: "" },
-    referral_code: "", accepted_terms: false, id_card: "",
-  });
-
   useEffect(() => {
     window.scrollTo(0, 0);
-    getCommittees()
-      .then((d) => {
-        if (Array.isArray(d) && d.length > 0) setCommittees(d);
-      })
-      .catch(() => { });
   }, []);
 
-  const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
-  const setPref = (which, k, v) => setF((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
-
-  const onIdUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) return toast.error("File too large (max 5MB)");
-    const reader = new FileReader();
-    reader.onload = () => set("id_card", reader.result);
-    reader.readAsDataURL(file);
-  };
-
-  const onScreenshotChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!/^image\//.test(file.type)) return toast.error("Please select an image (jpg or png)");
-    if (file.size > 8 * 1024 * 1024) return toast.error("File too large (max 8MB)");
-    const reader = new FileReader();
-    reader.onload = () => {
-      setScreenshotPreview(reader.result);
-      setScreenshotFile(file);
-      set("payment_screenshot", reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const portfoliosFor = (slug) => {
-    const c = committees.find((x) => x.slug === slug);
-    if (!c || !Array.isArray(c.portfolios)) return [];
-    return c.portfolios.filter((p) => p && p.status === "available");
-  };
-  const cName = (slug) => committees.find((c) => c.slug === slug)?.name || slug;
-
-  // Calculate fee based on referral code
-  const calculateFee = () => {
-    if (refState === 'valid' && f.referral_code.trim()) {
-      if (f.referral_code.trim().toUpperCase() === 'PARAMOUNT200') {
-        return 1500;
-      }
-      return 1200; // BASE_FEE (1700) - discount (500)
-    }
-    return 1700; // BASE_FEE
-  };
-
-  const validateStep = () => {
-    if (step === 1) {
-      if (!f.full_name.trim()) return "Enter your full name";
-      if (!/^\S+@\S+\.\S+$/.test(f.email)) return "Enter a valid email";
-      if (!f.phone.trim() || f.phone.replace(/\D/g, "").length < 8) return "Enter a valid phone number";
-    }
-    if (step === 2) {
-      if (!f.school.trim()) return "Enter your school or college";
-      if (!f.student_class.trim()) return "Enter your class";
-      if (!f.experience) return "Select your MUN experience level";
-      if (f.is_delegation && (!f.delegation_size || Number(f.delegation_size) < 1)) return "Enter your delegation size";
-    }
-    if (step === 3) {
-      if (!f.preference1.committee) return "Pick your first committee preference";
-    }
-    if (step === 4) {
-      if (!f.preference2.committee) return "Pick your second committee preference";
-    }
-    if (step === 5) {
-      if (!f.preference3.committee) return "Pick your third committee preference";
-    }
-    if (step === 6) {
-      if (f.school.toLowerCase().includes("paramount") && f.school.toLowerCase().includes("international") && f.school.toLowerCase().includes("school") && !f.referral_code.trim()) return "Referral code is mandatory for Paramount International School students";
-      if (f.referral_code.trim() && !f.id_card) return "Please upload your ID card to use a referral code";
-      if (!f.accepted_terms) return "Please accept the terms to continue";
-    }
-    return null;
-  };
-
-  const next = () => {
-    const err = validateStep();
-    if (err) return toast.error(err);
-    if (step < 6) setStep((s) => s + 1);
-    else setPhase("payment");
-  };
-  const back = () => {
-    if (phase === "payment") return setPhase("form");
-    if (step > 1) setStep((s) => s - 1);
-    else navigate("/");
-  };
-
-  const checkReferral = async () => {
-    const code = f.referral_code.trim().toUpperCase();
-    if (!code) { setRefState(null); setRefResult(null); return; }
-    try {
-      const r = await validateReferral(code);
-      if (r.valid) {
-        setRefState("valid");
-        setRefResult(r);
-        toast.success(`Referral code applied (₹${r.discount || (code === "PARAMOUNT200" ? 200 : 500)} off)`);
-      } else {
-        if (code === "PARAMOUNT200") {
-          setRefState("valid");
-          setRefResult({ valid: true, label: "Paramount Ambassador Discount", discount: 200 });
-          toast.success("Paramount code applied (₹200 off)");
-        } else {
-          setRefState("invalid");
-          setRefResult(null);
-          toast.error("That code isn't active or recognized");
-        }
-      }
-    } catch {
-      if (code === "PARAMOUNT200") {
-        setRefState("valid");
-        setRefResult({ valid: true, label: "Paramount Ambassador Discount", discount: 200 });
-        toast.success("Paramount code applied (₹200 off)");
-      } else {
-        setRefState("invalid");
-      }
-    }
-  };
-
-  const doSubmit = async () => {
-    if (!f.payment_screenshot && !screenshotFile) {
-      return toast.error("Please upload a payment screenshot before submitting.");
-    }
-    setSubmitting(true);
-    try {
-      const payload = {
-        ...f,
-        delegation_size: f.is_delegation && f.delegation_size ? Number(f.delegation_size) : null,
-        preference1: { committee: cName(f.preference1.committee), portfolio: f.preference1.portfolio || "" },
-        preference2: { committee: cName(f.preference2.committee), portfolio: f.preference2.portfolio || "" },
-        preference3: { committee: cName(f.preference3.committee), portfolio: f.preference3.portfolio || "" },
-      };
-      const res = await submitRegistration(payload);
-      setReference(res.reference_id);
-      setPhase("done");
-      window.scrollTo(0, 0);
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "Something went wrong. Try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* header */}
-      <div className="border-b border-border sticky top-0 z-40 bg-background/95">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex flex-col leading-none">
-            <span className="font-display text-lg text-foreground">Paramount MUN</span>
-            <span className="mono-label text-brass text-[9px]">Registration</span>
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between selection:bg-brass selection:text-black">
+      {/* Header */}
+      <header className="border-b border-border/80 sticky top-0 z-40 bg-background/95 backdrop-blur-md">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="flex flex-col leading-none group">
+            <span className="font-display text-lg sm:text-xl text-foreground group-hover:text-brass transition-colors">
+              Paramount MUN
+            </span>
+            <span className="mono-label text-brass text-[9px] tracking-widest uppercase">
+              Chapter IV · 2026
+            </span>
           </Link>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-block mono-label text-brass text-[10px] px-2.5 py-1 rounded-full border border-brass/30 bg-brass/10">
-              Deadline: 6 Oct 2026
+            <span className="inline-flex items-center gap-1.5 mono-label text-amber-300 text-[10px] px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              Registrations Closed
             </span>
-            <Link to="/" className="mono-label text-muted-foreground hover:text-brass transition-colors">Back to site</Link>
+            <Link
+              to="/"
+              className="mono-label text-muted-foreground hover:text-brass transition-colors text-xs flex items-center gap-1"
+            >
+              <ArrowLeft size={13} />
+              <span>Back to Home</span>
+            </Link>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
-        {phase === "form" && (
-          <>
-            {/* Registration Deadline Alert Banner */}
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-xl border border-brass/30 bg-brass/10 text-brass text-xs font-mono shadow-[0_0_20px_rgba(199,163,90,0.1)]">
-              <span className="flex items-center gap-2 font-semibold">
-                <span className="w-2 h-2 rounded-full bg-brass animate-pulse" />
-                Registration Deadline: 6 October 2026
-              </span>
-              <span className="text-secondary-foreground/70 text-[11px]">
-                Portfolios allotted on rolling basis
-              </span>
+      {/* Main Container */}
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="relative rounded-3xl border border-brass/25 bg-card/60 backdrop-blur-xl p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_35px_rgba(199,163,90,0.08)] overflow-hidden"
+        >
+          {/* Subtle Ambient Glow */}
+          <div
+            aria-hidden="true"
+            className="absolute top-0 right-1/4 w-72 h-44 rounded-full bg-brass/10 blur-[70px] pointer-events-none"
+          />
+
+          {/* Status Badge */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-medium mb-6">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span>Registration Window Officially Closed</span>
+          </div>
+
+          {/* Title */}
+          <h1 className="font-display text-3xl sm:text-5xl text-foreground tracking-tight leading-tight">
+            Registrations for Chapter IV are now closed.
+          </h1>
+
+          <p className="mt-4 text-base sm:text-lg text-secondary-foreground/85 leading-relaxed">
+            Thank you for the overwhelming response and enthusiasm! The delegate registration window for{" "}
+            <strong className="text-brass font-medium">Paramount International MUN Chapter IV</strong> is officially closed.
+          </p>
+
+          {/* Key Delegate Guidance Cards */}
+          <div className="mt-8 grid sm:grid-cols-2 gap-4">
+            <div className="p-5 rounded-2xl border border-border/80 bg-white/[0.02] flex flex-col justify-between">
+              <div>
+                <div className="mono-label text-brass text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-brass" />
+                  <span>Already Registered?</span>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Your registration is securely recorded. Official committee seat allotments, background guides, and conference confirmations are dispatched to your registered email address upon verification.
+                </p>
+              </div>
             </div>
 
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
-                <div className="mono-label text-brass font-medium">Step 0{step} / 06 — {STEPS[step - 1]}</div>
-                <span className="mono-label text-muted-foreground text-xs">{Math.round((step / 6) * 100)}% completed</span>
-              </div>
-              <div className="mt-3 h-2 w-full rounded-full bg-secondary overflow-hidden relative border border-border/40">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-[#8F6F34] via-[#C7A35A] to-[#FBE7B6] rounded-full relative"
-                  animate={{ width: `${(step / 6) * 100}%` }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            <div className="p-5 rounded-2xl border border-border/80 bg-white/[0.02] flex flex-col justify-between">
+              <div>
+                <div className="mono-label text-brass text-xs uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <ShieldCheck size={15} className="text-brass" />
+                  <span>Secretariat Contact</span>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Have an allotment inquiry or urgent question? Contact the organizing secretariat directly at:
+                </p>
+                <a
+                  href="mailto:paramountinternationalmun.26@gmail.com"
+                  className="mt-2 text-xs font-mono text-brass hover:underline break-all block"
                 >
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white shadow-[0_0_8px_#C7A35A]" />
-                </motion.div>
+                  paramountinternationalmun.26@gmail.com
+                </a>
               </div>
             </div>
+          </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={step}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-[0_10px_35px_rgba(0,0,0,0.4)]"
-              >
-                {step === 1 && (
-                  <div className="space-y-5">
-                    <h1 className="font-display text-3xl text-foreground">Let's start with you.</h1>
-                    <Field label="Full name" required>
-                      <Input data-testid="reg-full-name" className={inputCls} value={f.full_name} onChange={(e) => set("full_name", e.target.value)} placeholder="Aditya Sharma" />
-                    </Field>
-                    <Field label="Email" required>
-                      <Input data-testid="reg-email" type="email" className={inputCls} value={f.email} onChange={(e) => set("email", e.target.value)} placeholder="you@email.com" />
-                    </Field>
-                    <Field label="Phone" required>
-                      <Input data-testid="reg-phone" className={inputCls} value={f.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+91 98765 43210" />
-                    </Field>
-                  </div>
-                )}
-
-                {step === 2 && (
-                  <div className="space-y-5">
-                    <h1 className="font-display text-3xl text-foreground">Where are you from?</h1>
-                    <Field label="School / College" required>
-                      <Input data-testid="reg-school" className={inputCls} value={f.school} onChange={(e) => set("school", e.target.value)} placeholder="Paramount International School" />
-                    </Field>
-                    <Field label="Class" required hint="Eligible for classes 6th to 12th">
-                      <Input data-testid="reg-class" className={inputCls} value={f.student_class} onChange={(e) => set("student_class", e.target.value)} placeholder="e.g. 9th, 11th (Classes 6th–12th)" />
-                    </Field>
-                    <Field label="City">
-                      <Input data-testid="reg-city" className={inputCls} value={f.city} onChange={(e) => set("city", e.target.value)} placeholder="New Delhi" />
-                    </Field>
-                    <Field label="MUN experience level" required hint="Be honest — this feeds your allotment.">
-                      <Select value={f.experience} onValueChange={(v) => set("experience", v)}>
-                        <SelectTrigger data-testid="reg-experience" className={inputCls}><SelectValue placeholder="Select your level" /></SelectTrigger>
-                        <SelectContent>
-                          {EXPERIENCE.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field label="Notable awards / MUNs attended">
-                      <Textarea data-testid="reg-awards" className="bg-white/[0.02] border-border text-foreground focus-visible:ring-brass" value={f.awards} onChange={(e) => set("awards", e.target.value)} placeholder="Optional — best delegate at XYZ MUN, etc." />
-                    </Field>
-                    <div className="flex items-center justify-between rounded-xl border border-border p-4">
-                      <div>
-                        <div className="text-sm text-foreground">Registering as a delegation / team?</div>
-                        <div className="text-xs text-muted-foreground">Toggle on if you're coming as a group</div>
-                      </div>
-                      <Switch data-testid="reg-delegation" checked={f.is_delegation} onCheckedChange={(v) => set("is_delegation", v)} />
-                    </div>
-                    {f.is_delegation && (
-                      <Field label="Delegation size" required>
-                        <Input data-testid="reg-delegation-size" type="number" min="1" className={inputCls} value={f.delegation_size} onChange={(e) => set("delegation_size", e.target.value)} placeholder="e.g. 8" />
-                      </Field>
-                    )}
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <Field label="How did you hear about us?">
-                        <Input data-testid="reg-heard" className={inputCls} value={f.heard_from} onChange={(e) => set("heard_from", e.target.value)} placeholder="Optional" />
-                      </Field>
-                    </div>
-                  </div>
-                )}
-
-                {(step === 3 || step === 4 || step === 5) && (() => {
-                  const which = step === 3 ? "preference1" : step === 4 ? "preference2" : "preference3";
-                  const pref = f[which];
-                  const titles = {
-                    preference1: { h: "Your first choice.", s: "Which committee do you most want to be in?" },
-                    preference2: { h: "And a backup.", s: "In case your first preference fills up." },
-                    preference3: { h: "One more, to be safe.", s: "Your third and final committee preference." },
-                  };
-                  return (
-                    <div className="space-y-5">
-                      <h1 className="font-display text-3xl text-foreground">{titles[which].h}</h1>
-                      <p className="text-sm text-muted-foreground">{titles[which].s}</p>
-                      <Field label="Committee" required>
-                        <Select value={pref.committee} onValueChange={(v) => { setPref(which, "committee", v); setPref(which, "portfolio", ""); }}>
-                          <SelectTrigger data-testid={`reg-${which}-committee`} className={inputCls}><SelectValue placeholder="Select a committee" /></SelectTrigger>
-                          <SelectContent>
-                            {committees.map((c) => {
-                              const total = c.total_count || 60;
-                              const open = c.open_count !== undefined ? c.open_count : 40;
-                              const isFull = open === 0;
-                              const fillPct = total ? Math.round(((total - open) / total) * 100) : 0;
-                              return (
-                                <SelectItem key={c.slug} value={c.slug}>
-                                  {c.name} — {isFull ? "FULL (Waitlist Only)" : `${open} of ${total} open (${fillPct}% filled)`}
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      {pref.committee && (
-                        <Field label="Portfolio preference" hint="Optional — leave as 'Assign me one' if you're flexible.">
-                          <Select value={pref.portfolio || "__any__"} onValueChange={(v) => setPref(which, "portfolio", v === "__any__" ? "" : v)}>
-                            <SelectTrigger data-testid={`reg-${which}-portfolio`} className={inputCls}><SelectValue placeholder="Choose a portfolio" /></SelectTrigger>
-                            <SelectContent className="max-h-72">
-                              <SelectItem value="__any__">Assign me one</SelectItem>
-                              {portfoliosFor(pref.committee).map((p) => (
-                                <SelectItem key={p.name} value={p.party ? `${p.name} (${p.party})` : p.name}>
-                                  {p.party ? `${p.name} — ${p.party}` : p.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </Field>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {step === 6 && (
-                  <div className="space-y-5">
-                    <h1 className="font-display text-3xl text-foreground">Almost there.</h1>
-                    <Field label="Reference / Ambassador code" hint="Have a referral code? Enter it here to apply your eligible rate.">
-                      <div className="flex gap-2">
-                        <Input
-                          data-testid="reg-referral"
-                          className={inputCls}
-                          value={f.referral_code}
-                          onChange={(e) => { set("referral_code", e.target.value); setRefState(null); }}
-                          onBlur={checkReferral}
-                          placeholder="Optional"
-                        />
-                        <button
-                          type="button"
-                          data-testid="reg-referral-apply"
-                          onClick={checkReferral}
-                          className="h-11 shrink-0 rounded-lg border border-[#3A2F18] bg-card px-4 text-sm text-foreground hover:border-brass transition-colors"
-                        >
-                          Apply
-                        </button>
-                      </div>
-                    </Field>
-                    {refState === "valid" && (
-                      <div className="flex items-center gap-2 text-sm text-[#2FBF71]"><ShieldCheck size={15} /> Code accepted{refResult?.label ? ` — ${refResult.label}` : ""}. You get {f.referral_code.trim().toUpperCase() === 'PARAMOUNT200' ? "₹200" : "₹500"} off.</div>
-                    )}
-                    {refState === "invalid" && f.referral_code && (
-                      <div className="text-sm text-destructive">This code isn't recognised. You can still register without one.</div>
-                    )}
-
-                    {f.referral_code.trim() && (
-                      <div className="space-y-3">
-                        <div className="rounded-xl border border-[#3A2F18] bg-[#1A1710] p-4">
-                          <div className="mono-label text-brass mb-1">Important</div>
-                          <p className="text-sm text-secondary-foreground/85 leading-relaxed">
-                            If you are <span className="text-foreground font-medium">not a student of Paramount International School</span>, we advise you not to use this code — it may lead to disqualification, and payment is non-refundable. Please upload your ID card below for verification.
-                          </p>
-                        </div>
-                        <Field label="Upload your ID card" required hint="Image or PDF, up to 5MB. Used only to verify your eligibility for the code.">
-                          <input
-                            data-testid="reg-id-card"
-                            type="file"
-                            accept="image/*,application/pdf"
-                            onChange={onIdUpload}
-                            className="block w-full text-sm text-muted-foreground file:mr-3 file:h-10 file:rounded-lg file:border-0 file:bg-brass file:px-4 file:text-sm file:font-medium file:text-[#070A0F] hover:file:bg-brass-hover file:cursor-pointer"
-                          />
-                        </Field>
-                        {f.id_card && (
-                          <div className="flex items-center gap-3 rounded-lg border border-border bg-white/[0.02] p-2">
-                            {f.id_card.startsWith("data:image") ? (
-                              <img src={f.id_card} alt="ID preview" className="h-14 w-14 rounded object-cover" />
-                            ) : (
-                              <div className="h-14 w-14 rounded bg-secondary flex items-center justify-center mono-label text-brass">PDF</div>
-                            )}
-                            <span className="text-sm text-[#2FBF71] flex items-center gap-1"><ShieldCheck size={14} /> ID card attached</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="rounded-xl border border-border bg-white/[0.02] p-4">
-                      <div className="mono-label text-muted-foreground mb-1">Before you pay</div>
-                      <p className="text-sm text-secondary-foreground/85 leading-relaxed">
-                        All registrations are <span className="text-foreground font-medium">non-refundable</span>. You may transfer your spot to another delegate, subject to organizer approval.
-                      </p>
-                    </div>
-
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <Checkbox data-testid="reg-terms" checked={f.accepted_terms} onCheckedChange={(v) => set("accepted_terms", !!v)} className="mt-0.5 border-border data-[state=checked]:bg-brass data-[state=checked]:border-brass" />
-                      <span className="text-sm text-muted-foreground">
-                        I've read and accept the registration terms and the no-refund policy.
-                      </span>
-                    </label>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="mt-7 flex items-center justify-between">
-              <button data-testid="reg-back" onClick={back} className="card-luxury inline-flex h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm text-foreground hover:border-brass transition-colors">
-                <ArrowLeft size={16} /> {step === 1 ? "Home" : "Back"}
-              </button>
-              <button data-testid="reg-next" onClick={next} className="btn-luxury inline-flex h-11 items-center gap-2 rounded-lg bg-brass px-7 text-sm font-semibold text-[#070A0F] hover:bg-brass-hover transition-all shadow-[0_0_15px_rgba(199,163,90,0.3)] hover:shadow-[0_0_25px_rgba(199,163,90,0.6)]">
-                {step === 6 ? "Proceed to Payment" : "Continue"} <ArrowRight size={16} />
-              </button>
+          {/* Conference Details Banner */}
+          <div className="mt-6 p-4 rounded-xl border border-brass/20 bg-brass/[0.04] flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-foreground">
+            <div className="flex items-center gap-2">
+              <span className="text-brass font-bold">Conference Dates:</span>
+              <span>9–10 October 2026</span>
             </div>
-          </>
-        )}
+            <div className="flex items-center gap-2">
+              <span className="text-brass font-bold">Venue:</span>
+              <span>Paramount International School, Dwarka</span>
+            </div>
+          </div>
 
-        {phase === "payment" && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-border bg-card p-6 sm:p-8 text-center shadow-[0_10px_35px_rgba(0,0,0,0.4)]">
-            <div className="mono-label text-brass">Final step</div>
-            <h1 className="font-display text-3xl text-foreground mt-2">Complete your payment</h1>
-            <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
-              Scan the QR below with any UPI app to pay your delegate fee. Once done, submit your registration — our team verifies every payment before allotting portfolios.
-            </p>
-            <div className="mt-6 inline-block rounded-2xl border border-border bg-white p-3 shadow-lg">
-              <img data-testid="payment-qr" src={ASSET.qr} alt="UPI payment QR code" className="w-64 h-auto rounded-lg" />
-            </div>
-            <div className="mt-6 max-w-md mx-auto text-left">
-              <div className="mono-label text-brass">Upload Payment Screenshot</div>
-              <div className="mt-2 rounded-xl border border-border bg-white/[0.02] p-3">
-                <input
-                  data-testid="payment-screenshot"
-                  type="file"
-                  accept="image/png,image/jpeg"
-                  onChange={onScreenshotChange}
-                  className="block w-full text-sm text-muted-foreground file:mr-3 file:h-10 file:rounded-lg file:border-0 file:bg-brass file:px-4 file:text-sm file:font-medium file:text-[#070A0F] hover:file:bg-brass-hover file:cursor-pointer"
-                />
-                {screenshotPreview && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <img src={screenshotPreview} alt="Screenshot preview" className="h-16 w-16 rounded object-cover border" />
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        data-testid="submit-screenshot"
-                        onClick={async () => {
-                          if (!screenshotFile && !f.payment_screenshot) return toast.error("Select an image first");
-                          if (reference) {
-                            setScreenshotUploading(true);
-                            try {
-                              await uploadRegistrationScreenshot(reference, screenshotFile);
-                              toast.success("Screenshot uploaded");
-                            } catch (e) {
-                              toast.error(e?.response?.data?.detail || "Upload failed");
-                            } finally { setScreenshotUploading(false); }
-                          } else {
-                            // No reference yet — submit registration including attached screenshot
-                            try {
-                              setSubmitting(true);
-                              const payload = {
-                                ...f,
-                                delegation_size: f.is_delegation && f.delegation_size ? Number(f.delegation_size) : null,
-                                preference1: { committee: cName(f.preference1.committee), portfolio: f.preference1.portfolio || "" },
-                                preference2: { committee: cName(f.preference2.committee), portfolio: f.preference2.portfolio || "" },
-                                preference3: { committee: cName(f.preference3.committee), portfolio: f.preference3.portfolio || "" },
-                              };
-                              const res = await submitRegistration(payload);
-                              setReference(res.reference_id);
-                              setPhase("done");
-                              window.scrollTo(0, 0);
-                              toast.success("Registration submitted with screenshot");
-                            } catch (e) {
-                              toast.error(e?.response?.data?.detail || "Something went wrong. Try again.");
-                            } finally { setSubmitting(false); }
-                          }
-                        }}
-                        className="btn-luxury h-10 px-4 rounded-lg bg-brass text-[#070A0F] text-sm font-medium hover:bg-brass-hover transition-colors shadow"
-                      >
-                        {screenshotUploading ? "Uploading…" : "Submit Screenshot"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-[#3A2F18] bg-[#1A1710] px-4 py-2 shadow-sm">
-              <span className="mono-label text-brass font-medium">₹{calculateFee()} per delegate</span>
-            </div>
-            <p className="mt-3 mono-label text-muted-foreground">Pay via BHIM / UPI / GPay / PhonePe / Paytm</p>
-            <div className="mt-3 rounded-xl border border-[#3A2F18] bg-[#1A1710] p-3 max-w-md mx-auto">
-              <p className="text-xs text-secondary-foreground/80">Reminder: this fee is non-refundable. Submitting confirms you've completed payment.</p>
-            </div>
+          {/* Action CTAs */}
+          <div className="mt-8 pt-6 border-t border-border/60 flex flex-wrap items-center gap-3">
+            <Link
+              to="/handbook"
+              className="btn-luxury inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-[#E7C978] via-[#C7A35A] to-[#D4AF37] px-6 text-xs sm:text-sm font-semibold text-[#070A0F] hover:shadow-[0_0_25px_rgba(199,163,90,0.6)] transition-all"
+            >
+              <BookOpen size={15} />
+              <span>Read Delegate Manual</span>
+            </Link>
 
-            <div className="mt-7 flex items-center justify-center gap-3">
-              <button data-testid="payment-back" onClick={back} className="card-luxury inline-flex h-11 items-center gap-2 rounded-lg border border-border px-5 text-sm text-foreground hover:border-brass transition-colors">
-                <ArrowLeft size={16} /> Back
-              </button>
-              <button data-testid="reg-submit" disabled={submitting} onClick={doSubmit} className="btn-luxury inline-flex h-11 items-center gap-2 rounded-lg bg-brass px-7 text-sm font-semibold text-[#070A0F] hover:bg-brass-hover transition-colors disabled:opacity-60 shadow-[0_0_20px_rgba(199,163,90,0.4)]">
-                {submitting ? <><Loader2 size={16} className="animate-spin" /> Submitting…</> : <>I've paid — Submit <Check size={16} /></>}
-              </button>
-            </div>
-          </motion.div>
-        )}
+            <Link
+              to="/brochure"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card/80 px-5 text-xs sm:text-sm font-medium text-foreground hover:border-brass hover:text-brass transition-all"
+            >
+              <FileText size={15} />
+              <span>View Brochure Dossier</span>
+            </Link>
 
-        {phase === "done" && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="rounded-2xl border border-border bg-card p-8 text-center shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
-            <div className="mx-auto h-16 w-16 rounded-full bg-[#1A1710] border border-brass/60 flex items-center justify-center animate-pulse-gold">
-              <CheckCircle2 className="text-brass" size={32} />
-            </div>
-            <h1 className="font-display text-4xl text-foreground mt-5">You're registered!</h1>
-            <p className="mt-3 text-secondary-foreground/90 max-w-md mx-auto leading-relaxed">
-              We've received your registration and sent a confirmation email to <span className="text-brass font-medium">{f.email}</span>.
-            </p>
+            <Link
+              to="/"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-border bg-card/80 px-5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-all"
+            >
+              <span>Back to Home</span>
+            </Link>
+          </div>
+        </motion.div>
+      </main>
 
-            <div className="mt-5 inline-flex flex-col items-center rounded-2xl border border-brass/40 bg-[#0E1426] px-8 py-5 shadow-[0_0_30px_rgba(199,163,90,0.15)]">
-              <div className="mono-label text-muted-foreground text-xs">Your Delegate Reference ID</div>
-              <div data-testid="reg-reference-id" className="font-mono text-3xl text-brass tracking-wider mt-1 font-bold">{reference}</div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (navigator?.clipboard?.writeText) {
-                    navigator.clipboard.writeText(reference);
-                    toast.success("Reference ID copied to clipboard!");
-                  }
-                }}
-                className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brass/15 border border-brass/30 text-brass text-xs hover:bg-brass/25 transition-colors"
-              >
-                <Copy size={12} />
-                <span>Copy Reference ID</span>
-              </button>
-            </div>
-
-            <div className="mt-5 max-w-md mx-auto p-3.5 rounded-xl border border-brass/30 bg-brass/5 text-xs text-secondary-foreground/80 leading-relaxed text-left">
-              <p className="flex items-start gap-2">
-                <span className="text-brass font-bold">ℹ Note:</span>
-                <span>Confirmation emails are dispatched immediately. If you don't find it in your primary inbox, please check your <strong>Spam, Junk, or Promotions folder</strong> and mark it as "Not Spam".</span>
-              </p>
-            </div>
-
-            <p className="mt-5 text-sm text-muted-foreground">Our Secretariat will verify your payment and confirm your committee allotment by email.</p>
-            <div className="mt-7 flex items-center justify-center gap-3.5">
-              <Link to="/" className="card-luxury inline-flex h-11 items-center rounded-lg border border-border px-6 text-sm text-foreground hover:border-brass transition-colors">Back to home</Link>
-              <Link to="/handbook" className="btn-luxury inline-flex h-11 items-center rounded-lg bg-brass px-6 text-sm font-semibold text-[#070A0F] hover:bg-brass-hover transition-colors shadow-[0_0_15px_rgba(199,163,90,0.3)]">Read the Handbook</Link>
-            </div>
-          </motion.div>
-        )}
-      </div>
+      {/* Footer minimal */}
+      <footer className="py-6 border-t border-border/60 text-center text-xs font-mono text-muted-foreground">
+        © 2026 Paramount International MUN · All rights reserved.
+      </footer>
     </div>
   );
 }

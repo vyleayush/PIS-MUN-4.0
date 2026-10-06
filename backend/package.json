@@ -16,7 +16,6 @@
   "type": "commonjs",
   "dependencies": {
     "@libsql/client": "^0.18.0",
-    "better-sqlite3": "^9.6.0",
     "nodemailer": "^9.0.5"
   }
 }

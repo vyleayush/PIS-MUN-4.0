@@ -92,9 +92,10 @@ export default function Brochure() {
 
             <Link
               to="/register"
-              className="inline-flex h-9 sm:h-10 items-center rounded-full border border-brass/40 bg-card/60 px-4 sm:px-5 text-xs sm:text-sm font-medium text-foreground hover:border-brass hover:text-brass transition-all hidden md:inline-flex"
+              className="inline-flex h-9 sm:h-10 items-center gap-1.5 rounded-full border border-white/20 bg-card/60 px-4 sm:px-5 text-xs sm:text-sm font-medium text-foreground hover:border-brass hover:text-brass transition-all hidden md:inline-flex"
             >
-              Register
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Closed</span>
             </Link>
           </div>
         </div>
@@ -107,7 +108,7 @@ export default function Brochure() {
           <div>
             <div className="mono-label text-brass flex items-center gap-2 text-xs">
               <FileText size={14} className="text-brass" />
-              <span>Chapter IV · 9–10 October 2026 · Registration Deadline: 6 October 2026</span>
+              <span>Chapter IV · 9–10 October 2026 · Registrations Officially Closed</span>
             </div>
             <h1 className="font-display text-2xl sm:text-3xl text-foreground mt-1">
               Paramount MUN Official Conference Dossier
@@ -218,14 +219,14 @@ export default function Brochure() {
           </div>
 
           <div className="p-4 rounded-xl border border-border/70 bg-card/40 flex items-start gap-3">
-            <div className="p-2 rounded-lg bg-brass/10 text-brass">
-              <Sparkles size={18} />
+            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400">
+              <span className="w-2 h-2 rounded-full bg-amber-400 block" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-foreground">Register Now</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Closes 6 Oct · Portfolios rolling.</p>
+              <h4 className="text-sm font-semibold text-foreground">Registrations Closed</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">Chapter IV registrations are officially concluded.</p>
               <Link to="/register" className="text-xs text-brass hover:underline font-semibold mt-1 inline-block">
-                Register for MUN →
+                View Registration Status →
               </Link>
             </div>
           </div>

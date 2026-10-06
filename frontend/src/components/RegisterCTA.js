@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, FileText } from "lucide-react";
 import { Countdown } from "@/components/Countdown";
 import { Reveal } from "@/components/Reveal";
 import { ASSET } from "@/lib/assets";
@@ -24,12 +24,12 @@ export const RegisterCTA = () => (
     <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <Reveal>
         <div className="mono-label text-brass mb-4 flex items-center justify-center gap-2">
-          <Sparkles size={14} className="text-brass animate-pulse" />
-          / Registrations Open · Closes 6 October 2026
+          <span className="w-2 h-2 rounded-full bg-amber-400" />
+          / Chapter IV · Registrations Officially Closed
         </div>
-        <h2 className="section-heading text-foreground">Seats fill fast. Yours shouldn't wait.</h2>
+        <h2 className="section-heading text-foreground">Registrations Are Now Closed.</h2>
         <p className="mt-5 max-w-xl mx-auto text-secondary-foreground/85 leading-relaxed">
-          Portfolios are allotted in the order verified payments come in. Lock your committee before the good ones are gone.
+          Thank you for the tremendous interest! Delegate registrations for Chapter IV are now concluded. Committee seat allotments and details are being dispatched to registered delegates.
         </p>
       </Reveal>
       <Reveal delay={0.05}>
@@ -41,23 +41,35 @@ export const RegisterCTA = () => (
       </Reveal>
       <Reveal delay={0.1}>
         <div className="mt-8 flex flex-col items-center">
-          <Link
-            to="/register"
-            data-testid="cta-register-button"
-            className="btn-luxury group inline-flex h-12 items-center gap-2 rounded-full bg-brass px-9 text-sm font-semibold text-[#070A0F] hover:bg-brass-hover transition-all shadow-[0_0_25px_rgba(199,163,90,0.4)] hover:shadow-[0_0_40px_rgba(199,163,90,0.7)]"
-          >
-            Register Now <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs font-mono">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass">
-              <span className="w-1.5 h-1.5 rounded-full bg-brass animate-pulse" />
-              <span>Registration Deadline: <strong>6 October 2026</strong></span>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              to="/register"
+              data-testid="cta-register-button"
+              className="btn-luxury group inline-flex h-12 items-center gap-2 rounded-full bg-white/10 border border-white/20 px-8 text-sm font-semibold text-foreground hover:bg-white/15 hover:border-brass/40 transition-all active:scale-95"
+            >
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
+              <span>Registrations Closed</span>
+            </Link>
+            <Link
+              to="/handbook"
+              className="btn-luxury group inline-flex h-12 items-center gap-2 rounded-full bg-brass px-8 text-sm font-semibold text-[#070A0F] hover:bg-brass-hover transition-all shadow-[0_0_25px_rgba(199,163,90,0.4)] hover:shadow-[0_0_40px_rgba(199,163,90,0.7)] active:scale-95"
+            >
+              <BookOpen size={16} />
+              <span>Read Delegate Manual</span>
+              <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs font-mono">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Registration Status: <strong>Officially Closed</strong></span>
             </span>
             <span className="inline-flex items-center px-3.5 py-1 rounded-full bg-brass/10 border border-brass/30 text-brass font-medium">
-              For Classes 6th–12th
+              Conference: 9–10 October 2026
             </span>
           </div>
-          <p className="mt-3 mono-label text-muted-foreground text-xs">All registrations are non-refundable</p>
+          <p className="mt-3 mono-label text-muted-foreground text-xs">For queries, email paramountinternationalmun.26@gmail.com</p>
         </div>
       </Reveal>
     </div>

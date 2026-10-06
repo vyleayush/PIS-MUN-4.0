@@ -81,9 +81,10 @@ export default function Handbook() {
             <Link
               to="/register"
               data-testid="handbook-register"
-              className="btn-luxury inline-flex h-9 items-center rounded-full bg-brass px-4 text-xs sm:text-sm font-semibold text-[#070A0F] hover:shadow-[0_0_20px_rgba(199,163,90,0.6)] transition-all"
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-card/60 px-4 text-xs sm:text-sm font-medium text-foreground hover:border-brass hover:text-brass transition-all"
             >
-              Register
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Closed</span>
             </Link>
           </div>
         </div>
@@ -236,7 +237,7 @@ export default function Handbook() {
             </Link>
             <span className="text-border">·</span>
             <Link to="/register" className="text-foreground hover:text-brass transition-colors">
-              Register
+              Registrations Closed
             </Link>
             <span className="text-border">·</span>
             <Link to="/#committees" className="text-foreground hover:text-brass transition-colors">

@@ -22,7 +22,7 @@ export const Footer = () => (
             <li><Link to="/brochure" data-testid="footer-brochure-page" className="text-brass hover:underline transition-colors flex items-center gap-1 font-mono text-xs">Official PDF Dossier ↗</Link></li>
             <li><Link to="/#director-message" className="text-foreground hover:text-brass transition-colors">Director's Message</Link></li>
             <li><Link to="/handbook" data-testid="footer-handbook" className="text-foreground hover:text-brass transition-colors">Delegate Handbook</Link></li>
-            <li><Link to="/register" className="text-foreground hover:text-brass transition-colors">Register</Link></li>
+            <li><Link to="/register" className="text-foreground hover:text-brass transition-colors">Registration (Closed)</Link></li>
             <li><Link to="/#faq" data-testid="footer-refund" className="text-foreground hover:text-brass transition-colors">Refund Policy</Link></li>
           </ul>
         </div>

@@ -309,9 +309,10 @@ export const BrochureSection = () => {
                 <span className="text-border">·</span>
                 <Link
                   to="/register"
-                  className="font-semibold text-foreground hover:text-brass transition-colors font-mono"
+                  className="font-semibold text-foreground hover:text-brass transition-colors font-mono flex items-center gap-1.5"
                 >
-                  Proceed to Registration (Closes 6 Oct) →
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span>Registrations Officially Closed →</span>
                 </Link>
               </div>
             </div>
